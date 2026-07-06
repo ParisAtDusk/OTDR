@@ -1,0 +1,1 @@
+When gerbers are released, project files should be copied here
