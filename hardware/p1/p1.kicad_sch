@@ -1,0 +1,282 @@
+(kicad_sch
+	(version 20260306)
+	(generator "eeschema")
+	(generator_version "10.0")
+	(uuid "fc40cb48-4185-4815-9a73-afee444403f2")
+	(paper "A3")
+	(title_block
+		(title "${SHEETNAME}")
+		(date "2026-07-06")
+		(rev "r1")
+		(company "Engineer: KPA, KSK")
+	)
+	(lib_symbols)
+	(wire
+		(pts
+			(xy 353.06 134.62) (xy 347.98 134.62)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "27709a9b-9faa-45eb-ba9b-8f187017ed6e")
+	)
+	(wire
+		(pts
+			(xy 347.98 132.08) (xy 355.6 132.08)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "37f693f1-5667-4fe5-8749-afdbeb676239")
+	)
+	(wire
+		(pts
+			(xy 353.06 167.64) (xy 353.06 134.62)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "4bcf649b-ca9f-4142-83ac-2496e233fe80")
+	)
+	(wire
+		(pts
+			(xy 355.6 132.08) (xy 355.6 170.18)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "63d22bd6-96dd-4fdb-8c8a-98c1b1c1f433")
+	)
+	(wire
+		(pts
+			(xy 355.6 170.18) (xy 347.98 170.18)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "aa847199-8943-4f02-bc8b-582912b97771")
+	)
+	(wire
+		(pts
+			(xy 347.98 167.64) (xy 353.06 167.64)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "e9fe8332-5f02-422a-bc79-48d530922022")
+	)
+	(sheet
+		(at 307.086 165.1)
+		(size 40.894 13.97)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0)
+		)
+		(uuid "6eaec2e2-1d28-44f4-b28a-54312df512b2")
+		(property "Sheetname" "Power"
+			(at 307.086 164.3884 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "pwr.kicad_sch"
+			(at 307.086 179.6546 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(pin "+3V3" output
+			(at 347.98 167.64 0)
+			(uuid "638f61e4-6dcf-4284-8c02-c2af1baa76c1")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "VIN" input
+			(at 347.98 170.18 0)
+			(uuid "519d6a93-e605-42a2-89a6-ff364add2d7e")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(instances
+			(project "p1"
+				(path "/fc40cb48-4185-4815-9a73-afee444403f2"
+					(page "3")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 307.34 130.048)
+		(size 40.64 27.432)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0)
+		)
+		(uuid "95794840-9b3c-4661-85b8-51379cac013a")
+		(property "Sheetname" "uC"
+			(at 307.34 129.3364 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "uc.kicad_sch"
+			(at 307.34 158.0646 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(pin "+3V3" input
+			(at 347.98 134.62 0)
+			(uuid "775f1ee1-2fbc-4067-8c23-e1c8228c3605")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "ADC_VREF" input
+			(at 347.98 137.16 0)
+			(uuid "502fe74d-3d45-4fe9-90be-10c0194cc36a")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "ADC_CH1+" input
+			(at 307.34 132.08 180)
+			(uuid "9153a025-feaf-4496-94e6-636f8c7afa08")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "ADC_CH1-" input
+			(at 307.34 134.62 180)
+			(uuid "313c5fad-9f4f-48cf-859d-d6cf81ba78e0")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "USB_VBUS" output
+			(at 347.98 132.08 0)
+			(uuid "5e1ccbe6-0124-43e2-adb8-495c872e369b")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "ADC_CH2+" input
+			(at 307.34 137.16 180)
+			(uuid "3e33a81e-ad0a-4b0b-9765-8b050e5b9d6e")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "ADC_CH2-" input
+			(at 307.34 139.7 180)
+			(uuid "c06a86b5-7c6d-4c01-bf65-3e1a231f6f94")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "ADC_TRIGGER" output
+			(at 307.34 142.24 180)
+			(uuid "d9c3e03a-8e7d-4ff6-8f9c-e252c6ac1da8")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "LASER_EN" output
+			(at 307.34 144.78 180)
+			(uuid "5e40df95-810e-4853-9989-bffe0cf782e5")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(instances
+			(project "p1"
+				(path "/fc40cb48-4185-4815-9a73-afee444403f2"
+					(page "2")
+				)
+			)
+		)
+	)
+	(sheet_instances
+		(path "/"
+			(page "1")
+		)
+	)
+	(embedded_fonts no)
+)

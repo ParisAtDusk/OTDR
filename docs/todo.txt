@@ -1,0 +1,7 @@
+- to do
++ done
+
+TODO:
+- check XTAL value and footprint
+- check if USB resistors are needed
+- choose B/C USB connector
