@@ -4,9 +4,10 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Interactivity;
 using Avalonia.Styling;
-using System.IO;
+using OTDR.Views.Preferences;
+using OTDR.Views.About;
 
-namespace OTDR;
+namespace OTDR.Views;
 
 public partial class MainWindow : Window
 {
@@ -37,8 +38,8 @@ public partial class MainWindow : Window
 
     private void SetupInitialPlot()
     {
-        _plot.SetTitle("Example Signal");
-        _plot.SetAxisLabels("X", "Y");
+        _plot.SetTitle("OTDR");
+        _plot.SetAxisLabels("Distance [km]", "Signal [dBm]");
 
         // ScottPlot 5 shows grid lines by default; this just makes the
         // initial checkbox state (checked) match reality.
@@ -106,12 +107,12 @@ public partial class MainWindow : Window
 
     private void OnPlotClick(object? sender, RoutedEventArgs e)
     {
-        StatusText.Text = "Plotted";
+        InfoText.Text = "Plotted";
         PlotGeneratedData();
     }
 
     private void OnThemeClick(object? sender, RoutedEventArgs e)
-{
+    {
     Application.Current!.RequestedThemeVariant =
         (sender as MenuItem)?.Header switch
         {
@@ -119,39 +120,33 @@ public partial class MainWindow : Window
             "Light" => ThemeVariant.Light,
             _       => ThemeVariant.Default,
         };
-}
+    }
 
-    private void OnRandomizeClick(object? sender, RoutedEventArgs e)
+    private void OnStartClick(object? sender, RoutedEventArgs e)
     {
         FrequencySlider.Value = _random.NextDouble() * 5;
         AmplitudeSlider.Value = 0.5 + _random.NextDouble() * 2.5;
         NoiseSlider.Value = _random.NextDouble() * 0.5;
-        StatusText.Text = "Randomized";
+        InfoText.Text = "Randomized";
         PlotGeneratedData();
     }
 
     private void OnClearClick(object? sender, RoutedEventArgs e)
     {
         _plot.Clear();
-        StatusText.Text = "Cleared";
+        InfoText.Text = "Cleared";
     }
 
     private void OnExportClick(object? sender, RoutedEventArgs e)
     {
         // Example of exporting the current chart to a PNG file.
         _plot.SavePng("chart_export.png", 1000, 600);
-        StatusText.Text = "Exported to chart_export.png";
+        InfoText.Text = "Exported to chart_export.png";
     }
 
     // ====================================================================
-    // Menu handlers (File / Edit / Settings / Help)
-    // These are stubs - wire them up to your real logic.
+    // Menu handlers (File / View / Settings / Help)
     // ====================================================================
-
-    private void OnNewClick(object? sender, RoutedEventArgs e) => StatusText.Text = "New (stub)";
-    private void OnOpenClick(object? sender, RoutedEventArgs e) => StatusText.Text = "Open (stub)";
-    private void OnSaveClick(object? sender, RoutedEventArgs e) => StatusText.Text = "Save (stub)";
-    private void OnSaveAsClick(object? sender, RoutedEventArgs e) => StatusText.Text = "Save As (stub)";
 
     private void OnExitClick(object? sender, RoutedEventArgs e)
     {
@@ -161,7 +156,10 @@ public partial class MainWindow : Window
         }
     }
 
-    private void OnPreferencesClick(object? sender, RoutedEventArgs e) => StatusText.Text = "Preferences (stub)";
+    private async void OnPreferencesClick(object? sender, RoutedEventArgs e) {
+        var prefWindow = new PreferencesWindow();
+        await prefWindow.ShowDialog(this);
+    }
 
     // ====================================================================
     // Settings panel show/hide
@@ -209,6 +207,9 @@ public partial class MainWindow : Window
         SettingsToggleButton.IsChecked = _settingsVisible;
     }
 
-    private void OnDocsClick(object? sender, RoutedEventArgs e) => StatusText.Text = "Documentation (stub)";
-    private void OnAboutClick(object? sender, RoutedEventArgs e) => StatusText.Text = "OTDR (stub)";
+    private void OnDocsClick(object? sender, RoutedEventArgs e) => InfoText.Text = "Documentation (stub)";
+    private async void OnAboutClick(object? sender, RoutedEventArgs e) {
+        var aboutWindow = new AboutWindow();
+        await aboutWindow.ShowDialog(this);
+    }
 }

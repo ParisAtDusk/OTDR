@@ -1,0 +1,11 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="OTDR.Views.Preferences.PreferencesWindow"
+        Title="Preferences"
+        Width="400" Height="300"
+        WindowStartupLocation="CenterOwner">
+    <StackPanel Margin="20" Spacing="10">
+        <TextBlock Text="Preferences go here" FontSize="16"/>
+        <Button Content="Close" Click="OnCloseClick" HorizontalAlignment="Right"/>
+    </StackPanel>
+</Window>

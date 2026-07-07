@@ -1,6 +1,6 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        x:Class="OTDR.MainWindow"
+        x:Class="OTDR.Views.MainWindow"
         Title="OTDR"
         Width="1100" Height="700"
         MinWidth="800" MinHeight="500">
@@ -23,22 +23,14 @@
 
             <Menu>
                 <MenuItem Header="_File">
-                    <MenuItem Header="_New" Click="OnNewClick" InputGesture="Ctrl+N"/>
-                    <MenuItem Header="_Open..." Click="OnOpenClick" InputGesture="Ctrl+O"/>
-                    <Separator/>
-                    <MenuItem Header="_Save" Click="OnSaveClick" InputGesture="Ctrl+S"/>
-                    <MenuItem Header="Save _As..." Click="OnSaveAsClick"/>
+                    <!-- <MenuItem Header="_New" Click="OnNewClick" InputGesture="Ctrl+N"/> -->
+                    <!-- <MenuItem Header="_Open..." Click="OnOpenClick" InputGesture="Ctrl+O"/> -->
+                    <!-- <Separator/> -->
+                    <!-- <MenuItem Header="_Save" Click="OnSaveClick" InputGesture="Ctrl+S"/> -->
+                    <MenuItem Header="Export PNG" Click="OnExportClick"/>
+                    <MenuItem Header="Export CSV" Click="OnExportClick" InputGesture="Ctrl+S"/>
                     <Separator/>
                     <MenuItem Header="E_xit" Click="OnExitClick"/>
-                </MenuItem>
-
-                <MenuItem Header="_Edit">
-                    <MenuItem Header="_Undo" InputGesture="Ctrl+Z"/>
-                    <MenuItem Header="_Redo" InputGesture="Ctrl+Y"/>
-                    <Separator/>
-                    <MenuItem Header="Cu_t" InputGesture="Ctrl+X"/>
-                    <MenuItem Header="_Copy" InputGesture="Ctrl+C"/>
-                    <MenuItem Header="_Paste" InputGesture="Ctrl+V"/>
                 </MenuItem>
 
                 <MenuItem Header="_View">
@@ -59,6 +51,45 @@
                 </MenuItem>
             </Menu>
         </DockPanel>
+
+        <Border DockPanel.Dock="Bottom"
+                BorderThickness="0,1,0,0"
+                Padding="10,6">
+            <Grid ColumnDefinitions="Auto, *, Auto, Auto" VerticalAlignment="Center">
+
+                <!-- Status text -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" Margin="0,0,12,0">
+                    <Ellipse x:Name="ConnectionDot"
+                        Width="10" Height="10"
+                        Fill="{DynamicResource StatusDisconnectedBrush}"/>
+                    <TextBlock x:Name="BottomStatusText" Text="Disconnected" VerticalAlignment="Center"/>
+                </StackPanel>
+
+                <!-- Progress bar -->
+                <ProgressBar Grid.Column="1"
+                            x:Name="OperationProgressBar"
+                            Minimum="0" Maximum="100" Value="50"
+                            Height="16"
+                            IsVisible="True"
+                            VerticalAlignment="Center"
+                            Margin="0,0,12,0"/>
+
+                <!-- ETA -->
+                <TextBlock Grid.Column="2"
+                        x:Name="EtaText"
+                        Text=""
+                        VerticalAlignment="Center"
+                        Margin="0,0,12,0"
+                        Foreground="Gray"/>
+
+                <TextBlock Grid.Column="3"
+                        x:Name="InfoText"
+                        Text=""
+                        VerticalAlignment="Center"
+                        Foreground="Gray"/>
+
+            </Grid>
+        </Border>
 
         <!-- 2) MAIN CONTENT: a Grid with two columns.
              Left = settings column (fixed-ish width, scrollable)
@@ -91,11 +122,8 @@
                         </StackPanel>
                     </Expander>
 
-                    <!-- (b) Grid layout example.
-                         Grid with explicit Rows/Columns is ideal when you
-                         need things to visually line up, e.g. a label
-                         column next to a control column. -->
-                    <Expander Header="Signal Parameters (Grid)" IsExpanded="True">
+                    <!-- MEASUREMENT PARAMETERS -->
+                    <Expander Header="Measurement Parameters" IsExpanded="True">
                         <!-- NOTE: Avalonia's Grid has no RowSpacing/ColumnSpacing
                              property (unlike WinUI). Spacing between rows is
                              done here via a bottom Margin on each cell instead. -->
@@ -142,14 +170,11 @@
                          WrapPanel flows children left-to-right and wraps
                          to the next line when it runs out of room,
                          handy for a row/cluster of action buttons. -->
-                    <Expander Header="Actions (WrapPanel)" IsExpanded="True">
-                        <WrapPanel Margin="4">
-                            <Button Content="Plot" Click="OnPlotClick" Width="80" Margin="0,0,8,8"/>
-                            <Button Content="Randomize" Click="OnRandomizeClick" Width="90" Margin="0,0,8,8"/>
-                            <Button Content="Clear" Click="OnClearClick" Width="80" Margin="0,0,8,8"/>
-                            <Button Content="Export PNG" Click="OnExportClick" Width="100" Margin="0,0,8,8"/>
-                        </WrapPanel>
-                    </Expander>
+                    <UniformGrid Columns="2" Rows="1" Margin="4">
+                        <Button Content="Start" Click="OnStartClick" Width="100" Margin="0,0,8,8"/>
+                        <Button Content="Stop" Click="OnExportClick" Width="100" Margin="0,0,8,8"/>
+                    </UniformGrid>
+                    <Button Content="Clear" Click="OnClearClick" Width="200" Margin="0,0,8,8"/>
 
                 </StackPanel>
             </ScrollViewer>
@@ -166,10 +191,10 @@
                 <DockPanel LastChildFill="True">
 
                     <!-- simple header/status strip for the chart frame -->
-                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="10,10,10,0" Spacing="10">
+                    <!-- <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="10,10,10,0" Spacing="10">
                         <TextBlock Text="Chart" FontSize="16" FontWeight="Bold"/>
                         <TextBlock x:Name="StatusText" Text="Ready" Foreground="Gray" VerticalAlignment="Center"/>
-                    </StackPanel>
+                    </StackPanel> -->
 
                     <!-- The actual plot control, fills remaining space -->
                     <ContentControl x:Name="PlotContainer" Margin="10"/>
