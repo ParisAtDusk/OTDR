@@ -157,7 +157,7 @@
             <GridSplitter x:Name="SettingsSplitter" Grid.Column="1" Width="4" ResizeDirection="Columns" Background="{DynamicResource AppBorder}"/>
 
             <!-- RIGHT COLUMN: the main "frame" - a bordered container
-                 that holds the ScottPlot chart. Using a Border here to
+                 that holds the chart. Using a Border here to
                  visually separate the "frame" from the rest of the window,
                  and DockPanel inside to allow a header/status area plus
                  the chart filling remaining space. -->

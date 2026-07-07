@@ -16,6 +16,9 @@
 
     <!-- Charting library -->
     <PackageReference Include="ScottPlot.Avalonia" Version="5.0.36" />
+    <Content Include="themes/**">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>
