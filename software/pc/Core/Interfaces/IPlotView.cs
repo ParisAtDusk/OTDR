@@ -9,7 +9,6 @@ public interface IPlotView
     float LineWidth { set; }
     float MarkerSize { set; }
     string? LegendText { set; }  // null = hide
-    Color SeriesColor { set; }
 
     void SetTitle(string title);
     void SetAxisLabels(string x, string y);
@@ -17,7 +16,5 @@ public interface IPlotView
     void AutoScale();
 
     void SavePng(string path, int width, int height);
-    void SetTheme(ITheme theme);
-
     Control AsControl();
 }

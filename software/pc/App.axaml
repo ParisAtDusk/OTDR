@@ -1,16 +1,10 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:semi="https://irihi.tech/semi"
              x:Class="OTDR.App"
-             RequestedThemeVariant="Default">
-    <Application.Resources>
-        <SolidColorBrush x:Key="AppBackground"      Color="#1a1a2e"/>
-        <SolidColorBrush x:Key="AppForeground"      Color="#e0e0e0"/>
-        <SolidColorBrush x:Key="AppAccent"          Color="#4a9eff"/>
-        <SolidColorBrush x:Key="AppPanelBackground" Color="#16213e"/>
-        <SolidColorBrush x:Key="AppBorder"          Color="#33ffffff"/>
-    </Application.Resources>
+             RequestedThemeVariant="Dark">
     <Application.Styles>
-        <FluentTheme />
+        <semi:SemiTheme />
     </Application.Styles>
 
 </Application>

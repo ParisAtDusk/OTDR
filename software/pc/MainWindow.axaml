@@ -3,8 +3,7 @@
         x:Class="OTDR.MainWindow"
         Title="OTDR"
         Width="1100" Height="700"
-        MinWidth="800" MinHeight="500"
-        Background="{DynamicResource AppBackground}">
+        MinWidth="800" MinHeight="500">
     
     <!-- TOP-LEVEL LAYOUT: a DockPanel so the menu bar is pinned to the
          top and everything else fills the remaining space. -->
@@ -48,7 +47,10 @@
 
                 <MenuItem Header="_Settings">
                     <MenuItem Header="_Preferences..." Click="OnPreferencesClick"/>
-                    <MenuItem x:Name="ThemeMenuItem" Header="_Theme"/>
+                    <MenuItem x:Name="ThemeMenuItem" Header="_Theme">
+                        <MenuItem Header="Dark"  Click="OnThemeClick"/>
+                        <MenuItem Header="Light" Click="OnThemeClick"/>
+                    </MenuItem>
                 </MenuItem>
 
                 <MenuItem Header="_Help">
@@ -71,8 +73,7 @@
                    a) StackPanel   > simple vertical list (checkboxes)
                    b) Grid         > aligned label/control rows (sliders)
                    c) WrapPanel    > flowing buttons that wrap to a new line -->
-            <ScrollViewer x:Name="SettingsPanel" Grid.Column="0" Padding="10" Background="{DynamicResource AppPanelBackground}"
-              TextElement.Foreground="{DynamicResource AppForeground}">
+            <ScrollViewer x:Name="SettingsPanel" Grid.Column="0" Padding="10">
                 <StackPanel Spacing="14">
 
                     <TextBlock Text="Settings" FontSize="18" FontWeight="Bold" Margin="0,0,0,4"/>
@@ -154,14 +155,14 @@
             </ScrollViewer>
 
             <!-- Draggable splitter between settings and chart -->
-            <GridSplitter x:Name="SettingsSplitter" Grid.Column="1" Width="4" ResizeDirection="Columns" Background="{DynamicResource AppBorder}"/>
+            <GridSplitter x:Name="SettingsSplitter" Grid.Column="1" Width="4" ResizeDirection="Columns"/>
 
             <!-- RIGHT COLUMN: the main "frame" - a bordered container
                  that holds the chart. Using a Border here to
                  visually separate the "frame" from the rest of the window,
                  and DockPanel inside to allow a header/status area plus
                  the chart filling remaining space. -->
-            <Border Grid.Column="2" Margin="10" BorderThickness="1" CornerRadius="6" BorderBrush="{DynamicResource AppBorder}">
+            <Border Grid.Column="2" Margin="10" BorderThickness="1" CornerRadius="6">
                 <DockPanel LastChildFill="True">
 
                     <!-- simple header/status strip for the chart frame -->

@@ -3,6 +3,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Interactivity;
+using Avalonia.Styling;
 using System.IO;
 
 namespace OTDR;
@@ -12,7 +13,6 @@ public partial class MainWindow : Window
     // Keep a reference to the scatter plot so we can update it in place
     // instead of re-adding a new plot every time a slider moves.
     private readonly IPlotView _plot;
-    private readonly ThemeManager _themeManager = new();
     private readonly Random _random = new();
 
     // Remembers the settings column's width so it can be restored
@@ -29,20 +29,6 @@ public partial class MainWindow : Window
         PlotContainer.Content = _plot.AsControl();
         // Build the initial example plot once the window is constructed.
         SetupInitialPlot();
-        foreach (var file in Directory.GetFiles("themes", "*.json"))
-        {
-            var theme = ThemeLoader.LoadFromFile(file);
-            var item  = new MenuItem { Header = theme.Name };
-            item.Click += (_, _) =>
-        {
-            _themeManager.Apply(theme);
-            _plot.SetTheme(theme);
-        };
-            ThemeMenuItem.Items.Add(item);
-        }
-        var defaultTheme = ThemeLoader.LoadFromFile("themes/light.json");
-        _themeManager.Apply(defaultTheme);
-        _plot.SetTheme(defaultTheme);
     }
 
     // ====================================================================
@@ -123,6 +109,17 @@ public partial class MainWindow : Window
         StatusText.Text = "Plotted";
         PlotGeneratedData();
     }
+
+    private void OnThemeClick(object? sender, RoutedEventArgs e)
+{
+    Application.Current!.RequestedThemeVariant =
+        (sender as MenuItem)?.Header switch
+        {
+            "Dark"  => ThemeVariant.Dark,
+            "Light" => ThemeVariant.Light,
+            _       => ThemeVariant.Default,
+        };
+}
 
     private void OnRandomizeClick(object? sender, RoutedEventArgs e)
     {

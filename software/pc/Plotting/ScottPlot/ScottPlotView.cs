@@ -57,20 +57,6 @@ public class ScottPlotView : IPlotView
             _avaPlot.Refresh();
         }
     }
-    public void SetTheme(ITheme theme)
-    {
-        var plot = _avaPlot.Plot;
-        plot.FigureBackground.Color = ToScottColor(theme.Background);
-        plot.DataBackground.Color   = ToScottColor(theme.PanelBackground);
-        plot.Axes.Color(ToScottColor(theme.Foreground));
-        plot.Grid.MajorLineColor    = ToScottColor(theme.Foreground).WithAlpha(40);
-        _seriesColor = ToScottColor(theme.SeriesColor);
-        if (_scatter != null)
-        {
-            _scatter.Color = _seriesColor;
-            _avaPlot.Refresh();
-        }
-    }
 
     public Avalonia.Media.Color SeriesColor
     {
