@@ -1,5 +1,7 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:OTDR.Views.ViewModels"
+        x:DataType="vm:MainWindowViewModel"
         x:Class="OTDR.Views.MainWindow"
         Title="OTDR"
         Width="1100" Height="700"
@@ -95,7 +97,7 @@
              Left = settings column (fixed-ish width, scrollable)
              Right = main "frame" containing the chart
              A GridSplitter lets the user resize the panels. -->
-        <Grid x:Name="RootGrid" ColumnDefinitions="280, 4, *">
+        <Grid x:Name="RootGrid" ColumnDefinitions="320, 4, *">
 
             <!-- LEFT COLUMN: settings panel.
                  Wrapped in a ScrollViewer in case content overflows.
@@ -113,11 +115,14 @@
                          StackPanel arranges children in a single line
                          (vertical here via default Orientation).
                          Good for simple, uniform lists like checkboxes. -->
-                    <Expander Header="Display Options (StackPanel)" IsExpanded="True">
+                    <Expander Header="Display Options" IsExpanded="True">
                         <StackPanel Spacing="8" Margin="4">
-                            <CheckBox x:Name="ShowGridCheckBox" Content="Show grid lines" IsChecked="True" Click="OnShowGridChanged"/>
-                            <CheckBox x:Name="ShowLegendCheckBox" Content="Show legend" IsChecked="True" Click="OnShowLegendChanged"/>
-                            <CheckBox x:Name="ShowMarkersCheckBox" Content="Show markers" IsChecked="False" Click="OnShowMarkersChanged"/>
+                            <CheckBox x:Name="ShowGridCheckBox" Content="Show grid lines"
+                                    IsChecked="{Binding ShowGrid, Mode=TwoWay}"/>
+                            <CheckBox x:Name="ShowLegendCheckBox" Content="Show legend"
+                                    IsChecked="{Binding ShowLegend, Mode=TwoWay}"/>
+                            <CheckBox x:Name="ShowMarkersCheckBox" Content="Show markers"
+                                    IsChecked="{Binding ShowMarkers, Mode=TwoWay}"/>
                             <CheckBox x:Name="AutoScaleCheckBox" Content="Auto-scale axes" IsChecked="True"/>
                         </StackPanel>
                     </Expander>
@@ -126,40 +131,42 @@
                     <Expander Header="Measurement Parameters" IsExpanded="True">
                         <!-- NOTE: Avalonia's Grid has no RowSpacing/ColumnSpacing
                              property (unlike WinUI). Spacing between rows is
-                             done here via a bottom Margin on each cell instead. -->
+                             done here via a bottom Margin on each cell instead.  '*'' fills remaining space-->
                         <Grid Margin="4"
-                              ColumnDefinitions="Auto, *"
+                               ColumnDefinitions="Auto, 80, 5, *"
                               RowDefinitions="Auto, Auto, Auto, Auto, Auto, Auto">
 
-                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Frequency" VerticalAlignment="Center" Margin="0,0,8,8"/>
-                            <Slider x:Name="FrequencySlider" Grid.Row="0" Grid.Column="1"
-                                    Minimum="0.1" Maximum="5" Value="1" TickFrequency="0.1"
-                                    Margin="0,0,0,8"
-                                    ValueChanged="OnParameterChanged"/>
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="On Time" VerticalAlignment="Center" Margin="0,0,8,8"/>
+                            <TextBox Grid.Row="0" Grid.Column="1" MaxLength="6" Margin="0,0,0,0" TextAlignment="Center"
+                                Text="{Binding OnTimeStr, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                PlaceholderText="500ns"/>
+                            <Slider x:Name="OnTimeSlider" Grid.Row="0" Grid.Column="3"
+                                Minimum="0.1" Maximum="20000" TickFrequency="1"
+                                Margin="0,0,0,8"
+                                Value="{Binding OnTime, Mode=TwoWay}"/>
 
                             <TextBlock Grid.Row="1" Grid.Column="0" Text="Amplitude" VerticalAlignment="Center" Margin="0,0,8,8"/>
-                            <Slider x:Name="AmplitudeSlider" Grid.Row="1" Grid.Column="1"
-                                    Minimum="0.1" Maximum="3" Value="1" TickFrequency="0.1"
-                                    Margin="0,0,0,8"
-                                    ValueChanged="OnParameterChanged"/>
+                            <TextBox Grid.Row="1" Grid.Column="1" MaxLength="6" Margin="0,0,0,0" TextAlignment="Center"
+                                Text="{Binding Amplitude, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                PlaceholderText="0V"/>
+                            <Slider x:Name="AmplitudeSlider" Grid.Row="1" Grid.Column="3"
+                                    Minimum="0.1" Maximum="3" TickFrequency="0.1" Value="{Binding Amplitude, Mode=TwoWay}"
+                                    Margin="0,0,0,8"/>
 
                             <TextBlock Grid.Row="2" Grid.Column="0" Text="Noise" VerticalAlignment="Center" Margin="0,0,8,8"/>
-                            <Slider x:Name="NoiseSlider" Grid.Row="2" Grid.Column="1"
-                                    Minimum="0" Maximum="1" Value="0.05" TickFrequency="0.01"
-                                    Margin="0,0,0,8"
-                                    ValueChanged="OnParameterChanged"/>
+                            <Slider x:Name="NoiseSlider" Grid.Row="2" Grid.Column="3"
+                                    Minimum="0" Maximum="1" TickFrequency="0.01" Value="{Binding Noise, Mode=TwoWay}"
+                                    Margin="0,0,0,8"/>
 
                             <TextBlock Grid.Row="3" Grid.Column="0" Text="Point count" VerticalAlignment="Center" Margin="0,0,8,8"/>
-                            <Slider x:Name="PointCountSlider" Grid.Row="3" Grid.Column="1"
-                                    Minimum="10" Maximum="1000" Value="200"
-                                    Margin="0,0,0,8"
-                                    ValueChanged="OnParameterChanged"/>
+                            <Slider x:Name="PointCountSlider" Grid.Row="3" Grid.Column="3" Value="{Binding PointCount, Mode=TwoWay}"
+                                    Minimum="10" Maximum="1000"
+                                    Margin="0,0,0,8"/>
 
                             <TextBlock Grid.Row="4" Grid.Column="0" Text="Line width" VerticalAlignment="Center" Margin="0,0,8,8"/>
-                            <Slider x:Name="LineWidthSlider" Grid.Row="4" Grid.Column="1"
-                                    Minimum="1" Maximum="8" Value="2"
-                                    Margin="0,0,0,8"
-                                    ValueChanged="OnParameterChanged"/>
+                            <Slider x:Name="LineWidthSlider" Grid.Row="4" Grid.Column="3"
+                                    Minimum="1" Maximum="8" Value="{Binding LineWidth, Mode=TwoWay}"
+                                    Margin="0,0,0,8"/>
 
                             <TextBlock Grid.Row="5" Grid.Column="0" Text="Current freq." VerticalAlignment="Center" Margin="0,0,8,0"/>
                             <TextBlock Grid.Row="5" Grid.Column="1" x:Name="FrequencyValueText" Text="1.00" VerticalAlignment="Center"/>
