@@ -1,0 +1,214 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:OTDR.Views.ViewModels"
+        x:DataType="vm:MainWindowViewModel"
+        x:Class="OTDR.Views.MainWindow"
+        Title="OTDR"
+        Width="1100" Height="700"
+        MinWidth="800" MinHeight="500">
+    
+    <!-- TOP-LEVEL LAYOUT: a DockPanel so the menu bar is pinned to the
+         top and everything else fills the remaining space. -->
+    <DockPanel>
+        <!-- 1) TOP BAR: a small always-visible toggle button (to show/hide
+             the settings column even after it's collapsed) docked next to
+             the typical "File / Settings / Help" style menu. -->
+        <DockPanel DockPanel.Dock="Top">
+            <ToggleButton x:Name="SettingsToggleButton"
+                          DockPanel.Dock="Left"
+                          Content="◀"
+                          Width="32"
+                          Margin="4,4,0,4"
+                          IsChecked="True"
+                          Click="OnToggleSettingsClick"
+                          ToolTip.Tip="Show/hide settings panel"/>
+
+            <Menu>
+                <MenuItem Header="_File">
+                    <!-- <MenuItem Header="_New" Click="OnNewClick" InputGesture="Ctrl+N"/> -->
+                    <!-- <MenuItem Header="_Open..." Click="OnOpenClick" InputGesture="Ctrl+O"/> -->
+                    <!-- <Separator/> -->
+                    <!-- <MenuItem Header="_Save" Click="OnSaveClick" InputGesture="Ctrl+S"/> -->
+                    <MenuItem Header="Export PNG" Click="OnExportClick"/>
+                    <MenuItem Header="Export CSV" Click="OnExportClick" InputGesture="Ctrl+S"/>
+                    <Separator/>
+                    <MenuItem Header="E_xit" Click="OnExitClick"/>
+                </MenuItem>
+
+                <MenuItem Header="_View">
+                    <MenuItem Header="Toggle _Settings Panel" Click="OnToggleSettingsClick"/>
+                </MenuItem>
+
+                <MenuItem Header="_Settings">
+                    <MenuItem Header="_Preferences..." Click="OnPreferencesClick"/>
+                    <MenuItem x:Name="ThemeMenuItem" Header="_Theme">
+                        <MenuItem Header="Dark"  Click="OnThemeClick"/>
+                        <MenuItem Header="Light" Click="OnThemeClick"/>
+                    </MenuItem>
+                </MenuItem>
+
+                <MenuItem Header="_Help">
+                    <MenuItem Header="_Documentation" Click="OnDocsClick"/>
+                    <MenuItem Header="_About" Click="OnAboutClick"/>
+                </MenuItem>
+            </Menu>
+        </DockPanel>
+
+        <Border DockPanel.Dock="Bottom"
+                BorderThickness="0,1,0,0"
+                Padding="10,6">
+            <Grid ColumnDefinitions="Auto, *, Auto, Auto" VerticalAlignment="Center">
+
+                <!-- Status text -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" Margin="0,0,12,0">
+                    <Ellipse x:Name="ConnectionDot"
+                        Width="10" Height="10"
+                        Fill="{DynamicResource StatusDisconnectedBrush}"/>
+                    <TextBlock x:Name="BottomStatusText" Text="Disconnected" VerticalAlignment="Center"/>
+                </StackPanel>
+
+                <!-- Progress bar -->
+                <ProgressBar Grid.Column="1"
+                            x:Name="OperationProgressBar"
+                            Minimum="0" Maximum="100" Value="50"
+                            Height="16"
+                            IsVisible="True"
+                            VerticalAlignment="Center"
+                            Margin="0,0,12,0"/>
+
+                <!-- ETA -->
+                <TextBlock Grid.Column="2"
+                        x:Name="EtaText"
+                        Text=""
+                        VerticalAlignment="Center"
+                        Margin="0,0,12,0"
+                        Foreground="Gray"/>
+
+                <TextBlock Grid.Column="3"
+                        x:Name="InfoText"
+                        Text=""
+                        VerticalAlignment="Center"
+                        Foreground="Gray"/>
+
+            </Grid>
+        </Border>
+
+        <!-- 2) MAIN CONTENT: a Grid with two columns.
+             Left = settings column (fixed-ish width, scrollable)
+             Right = main "frame" containing the chart
+             A GridSplitter lets the user resize the panels. -->
+        <Grid x:Name="RootGrid" ColumnDefinitions="320, 4, *">
+
+            <!-- LEFT COLUMN: settings panel.
+                 Wrapped in a ScrollViewer in case content overflows.
+                 Contains THREE sections, each demonstrating a different
+                 Avalonia layout panel, so you can refer back to them:
+                   a) StackPanel   > simple vertical list (checkboxes)
+                   b) Grid         > aligned label/control rows (sliders)
+                   c) WrapPanel    > flowing buttons that wrap to a new line -->
+            <ScrollViewer x:Name="SettingsPanel" Grid.Column="0" Padding="10">
+                <StackPanel Spacing="14">
+
+                    <TextBlock Text="Settings" FontSize="18" FontWeight="Bold" Margin="0,0,0,4"/>
+
+                    <!-- (a) StackPanel layout example.
+                         StackPanel arranges children in a single line
+                         (vertical here via default Orientation).
+                         Good for simple, uniform lists like checkboxes. -->
+                    <Expander Header="Display Options" IsExpanded="True">
+                        <StackPanel Spacing="8" Margin="4">
+                            <CheckBox x:Name="ShowGridCheckBox" Content="Show grid lines"
+                                    IsChecked="{Binding ShowGrid, Mode=TwoWay}"/>
+                            <CheckBox x:Name="ShowLegendCheckBox" Content="Show legend"
+                                    IsChecked="{Binding ShowLegend, Mode=TwoWay}"/>
+                            <CheckBox x:Name="ShowMarkersCheckBox" Content="Show markers"
+                                    IsChecked="{Binding ShowMarkers, Mode=TwoWay}"/>
+                            <CheckBox x:Name="AutoScaleCheckBox" Content="Auto-scale axes" IsChecked="True"/>
+                        </StackPanel>
+                    </Expander>
+
+                    <!-- MEASUREMENT PARAMETERS -->
+                    <Expander Header="Measurement Parameters" IsExpanded="True">
+                        <!-- NOTE: Avalonia's Grid has no RowSpacing/ColumnSpacing
+                             property (unlike WinUI). Spacing between rows is
+                             done here via a bottom Margin on each cell instead.  '*'' fills remaining space-->
+                        <Grid Margin="4"
+                               ColumnDefinitions="Auto, 80, 5, *"
+                              RowDefinitions="Auto, Auto, Auto, Auto, Auto, Auto">
+
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="On Time" VerticalAlignment="Center" Margin="0,0,8,8"/>
+                            <TextBox Grid.Row="0" Grid.Column="1" MaxLength="6" Margin="0,0,0,0" TextAlignment="Center"
+                                Text="{Binding OnTimeStr, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                PlaceholderText="500ns"/>
+                            <Slider x:Name="OnTimeSlider" Grid.Row="0" Grid.Column="3"
+                                Minimum="0.1" Maximum="20000" TickFrequency="1"
+                                Margin="0,0,0,8"
+                                Value="{Binding OnTime, Mode=TwoWay}"/>
+
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Amplitude" VerticalAlignment="Center" Margin="0,0,8,8"/>
+                            <TextBox Grid.Row="1" Grid.Column="1" MaxLength="6" Margin="0,0,0,0" TextAlignment="Center"
+                                Text="{Binding Amplitude, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                PlaceholderText="0V"/>
+                            <Slider x:Name="AmplitudeSlider" Grid.Row="1" Grid.Column="3"
+                                    Minimum="0.1" Maximum="3" TickFrequency="0.1" Value="{Binding Amplitude, Mode=TwoWay}"
+                                    Margin="0,0,0,8"/>
+
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Noise" VerticalAlignment="Center" Margin="0,0,8,8"/>
+                            <Slider x:Name="NoiseSlider" Grid.Row="2" Grid.Column="3"
+                                    Minimum="0" Maximum="1" TickFrequency="0.01" Value="{Binding Noise, Mode=TwoWay}"
+                                    Margin="0,0,0,8"/>
+
+                            <TextBlock Grid.Row="3" Grid.Column="0" Text="Point count" VerticalAlignment="Center" Margin="0,0,8,8"/>
+                            <Slider x:Name="PointCountSlider" Grid.Row="3" Grid.Column="3" Value="{Binding PointCount, Mode=TwoWay}"
+                                    Minimum="10" Maximum="1000"
+                                    Margin="0,0,0,8"/>
+
+                            <TextBlock Grid.Row="4" Grid.Column="0" Text="Line width" VerticalAlignment="Center" Margin="0,0,8,8"/>
+                            <Slider x:Name="LineWidthSlider" Grid.Row="4" Grid.Column="3"
+                                    Minimum="1" Maximum="8" Value="{Binding LineWidth, Mode=TwoWay}"
+                                    Margin="0,0,0,8"/>
+
+                            <TextBlock Grid.Row="5" Grid.Column="0" Text="Current freq." VerticalAlignment="Center" Margin="0,0,8,0"/>
+                            <TextBlock Grid.Row="5" Grid.Column="1" x:Name="FrequencyValueText" Text="1.00" VerticalAlignment="Center"/>
+                        </Grid>
+                    </Expander>
+
+                    <!-- (c) WrapPanel layout example.
+                         WrapPanel flows children left-to-right and wraps
+                         to the next line when it runs out of room,
+                         handy for a row/cluster of action buttons. -->
+                    <UniformGrid Columns="2" Rows="1" Margin="4">
+                        <Button Content="Start" Click="OnStartClick" Width="100" Margin="0,0,8,8"/>
+                        <Button Content="Stop" Click="OnExportClick" Width="100" Margin="0,0,8,8"/>
+                    </UniformGrid>
+                    <Button Content="Clear" Click="OnClearClick" Width="200" Margin="0,0,8,8"/>
+
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- Draggable splitter between settings and chart -->
+            <GridSplitter x:Name="SettingsSplitter" Grid.Column="1" Width="4" ResizeDirection="Columns"/>
+
+            <!-- RIGHT COLUMN: the main "frame" - a bordered container
+                 that holds the chart. Using a Border here to
+                 visually separate the "frame" from the rest of the window,
+                 and DockPanel inside to allow a header/status area plus
+                 the chart filling remaining space. -->
+            <Border Grid.Column="2" Margin="10" BorderThickness="1" CornerRadius="6">
+                <DockPanel LastChildFill="True">
+
+                    <!-- simple header/status strip for the chart frame -->
+                    <!-- <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="10,10,10,0" Spacing="10">
+                        <TextBlock Text="Chart" FontSize="16" FontWeight="Bold"/>
+                        <TextBlock x:Name="StatusText" Text="Ready" Foreground="Gray" VerticalAlignment="Center"/>
+                    </StackPanel> -->
+
+                    <!-- The actual plot control, fills remaining space -->
+                    <ContentControl x:Name="PlotContainer" Margin="10"/>
+
+                </DockPanel>
+            </Border>
+
+        </Grid>
+    </DockPanel>
+</Window>
