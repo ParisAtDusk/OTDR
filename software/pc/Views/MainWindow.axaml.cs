@@ -47,9 +47,6 @@ public partial class MainWindow : Window
         switch (e.PropertyName)
         {
             case nameof(MainWindowViewModel.OnTime):
-            case nameof(MainWindowViewModel.Amplitude):
-            case nameof(MainWindowViewModel.Noise):
-            case nameof(MainWindowViewModel.PointCount):
             case nameof(MainWindowViewModel.LineWidth):
             case nameof(MainWindowViewModel.ShowMarkers):
             case nameof(MainWindowViewModel.ShowLegend):
@@ -64,19 +61,15 @@ public partial class MainWindow : Window
 
     private void PlotGeneratedData()
     {
-        double frequency = _vm.OnTime;
-        double amplitude = _vm.Amplitude;
-        double noise = _vm.Noise;
-        int count = (int)_vm.PointCount;
-
+        double frequency = _vm.OnTime / 1000;
+        int count = 100;
         double[] xs = new double[count];
         double[] ys = new double[count];
 
         for (int i = 0; i < count; i++)
         {
             double x = i / (double)count * 10.0;
-            double y = amplitude * Math.Sin(2 * Math.PI * frequency * x / 10.0);
-            y += (_random.NextDouble() - 0.5) * 2 * noise;
+            double y = Math.Sin(2 * Math.PI * frequency * x / 10.0);
             xs[i] = x;
             ys[i] = y;
         }
@@ -86,11 +79,7 @@ public partial class MainWindow : Window
         _plot.MarkerSize = _vm.ShowMarkers ? 5 : 0;
         _plot.LegendText = _vm.ShowLegend ? "Example series" : null;
         _plot.AutoScale();
-
-        FrequencyValueText.Text = frequency.ToString("0.00");
     }
-
-    // ---- everything below is unchanged from your version ----
 
     private void OnPlotClick(object? sender, RoutedEventArgs e)
     {
@@ -109,11 +98,18 @@ public partial class MainWindow : Window
             };
     }
 
+    private void OnConnectionClick(object? sender, RoutedEventArgs e)
+    {
+        InfoText.Text = (sender as MenuItem)?.Name switch
+        {
+            "RefreshPorts" => "Connection",
+            _=> InfoText.Text = "NOP",
+        };
+    }
+
     private void OnStartClick(object? sender, RoutedEventArgs e)
     {
         _vm.OnTime = _random.NextDouble() * 5;
-        _vm.Amplitude = 0.5 + _random.NextDouble() * 2.5;
-        _vm.Noise = _random.NextDouble() * 0.5;
         InfoText.Text = "Randomized";
     }
 

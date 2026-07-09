@@ -11,13 +11,13 @@
         <ResourceDictionary.ThemeDictionaries>
 
             <ResourceDictionary x:Key="Light">
-                <SolidColorBrush x:Key="StatusConnectedBrush" Color="#2E7D32"/>   <!-- ciemniejsza zieleń, kontrast na jasnym tle -->
-                <SolidColorBrush x:Key="StatusBusyBrush" Color="#F9A825"/>       <!-- ciemniejszy żółty -->
-                <SolidColorBrush x:Key="StatusDisconnectedBrush" Color="#C62828"/> <!-- ciemniejsza czerwień -->
+                <SolidColorBrush x:Key="StatusConnectedBrush" Color="#2E7D32"/>
+                <SolidColorBrush x:Key="StatusBusyBrush" Color="#F9A825"/>
+                <SolidColorBrush x:Key="StatusDisconnectedBrush" Color="#C62828"/>
             </ResourceDictionary>
 
             <ResourceDictionary x:Key="Dark">
-                <SolidColorBrush x:Key="StatusConnectedBrush" Color="#66BB6A"/>   <!-- jaśniejsza zieleń na ciemnym tle -->
+                <SolidColorBrush x:Key="StatusConnectedBrush" Color="#66BB6A"/>
                 <SolidColorBrush x:Key="StatusBusyBrush" Color="#FFCA28"/>
                 <SolidColorBrush x:Key="StatusDisconnectedBrush" Color="#EF5350"/>
             </ResourceDictionary>

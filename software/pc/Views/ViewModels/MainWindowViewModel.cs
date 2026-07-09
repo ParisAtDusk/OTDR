@@ -1,10 +1,11 @@
 using System;
-using System.ComponentModel;
 using System.Globalization;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 
 namespace OTDR.Views.ViewModels;
 
-public class MainWindowViewModel : INotifyPropertyChanged
+public partial class MainWindowViewModel : ObservableObject
 {
     // ---- On Time (ns <-> "1us"-style text) ----
     private double _onTimeNs = 1000.0;
@@ -35,10 +36,6 @@ public class MainWindowViewModel : INotifyPropertyChanged
         {
             if (_onTimeStr == value) return;
 
-            // Only accept text that actually parses to a valid ns value.
-            // If it doesn't parse (user is mid-typing, e.g. "1u"), just
-            // store the raw text so the TextBox doesn't fight the user,
-            // but don't touch OnTime yet.
             _onTimeStr = value;
             OnPropertyChanged(nameof(OnTimeStr));
 
@@ -58,11 +55,6 @@ public class MainWindowViewModel : INotifyPropertyChanged
             _ => $"{ns / 1_000_000:0.##}ms"
         };
     }
-
-    /// <summary>
-    /// Parses strings like "500ns", "1.5us", "1us", "2ms" (case-insensitive,
-    /// also accepts "µs") into a nanosecond value.
-    /// </summary>
     private static bool TryParseToNs(string text, out double ns)
     {
         ns = 0;
@@ -101,56 +93,12 @@ public class MainWindowViewModel : INotifyPropertyChanged
     }
 
     // ---- Other plot parameters ----
-    private double _amplitude = 1.0;
-    public double Amplitude
-    {
-        get => _amplitude;
-        set { if (Math.Abs(_amplitude - value) < 0.0001) return; _amplitude = value; OnPropertyChanged(nameof(Amplitude)); }
-    }
-
-    private double _noise = 0.1;
-    public double Noise
-    {
-        get => _noise;
-        set { if (Math.Abs(_noise - value) < 0.0001) return; _noise = value; OnPropertyChanged(nameof(Noise)); }
-    }
-
-    private double _pointCount = 200;
-    public double PointCount
-    {
-        get => _pointCount;
-        set { if (Math.Abs(_pointCount - value) < 0.0001) return; _pointCount = value; OnPropertyChanged(nameof(PointCount)); }
-    }
-
-    private double _lineWidth = 1.0;
-    public double LineWidth
-    {
-        get => _lineWidth;
-        set { if (Math.Abs(_lineWidth - value) < 0.0001) return; _lineWidth = value; OnPropertyChanged(nameof(LineWidth)); }
-    }
-
-    private bool _showMarkers;
-    public bool ShowMarkers
-    {
-        get => _showMarkers;
-        set { if (_showMarkers == value) return; _showMarkers = value; OnPropertyChanged(nameof(ShowMarkers)); }
-    }
-
-    private bool _showLegend;
-    public bool ShowLegend
-    {
-        get => _showLegend;
-        set { if (_showLegend == value) return; _showLegend = value; OnPropertyChanged(nameof(ShowLegend)); }
-    }
-
-    private bool _showGrid = true;
-    public bool ShowGrid
-    {
-        get => _showGrid;
-        set { if (_showGrid == value) return; _showGrid = value; OnPropertyChanged(nameof(ShowGrid)); }
-    }
-
-    public event PropertyChangedEventHandler? PropertyChanged;
-    private void OnPropertyChanged(string propertyName) =>
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    [ObservableProperty]
+    private double lineWidth = 1.0;
+    [ObservableProperty]
+    private bool showMarkers;
+    [ObservableProperty]
+    private bool showLegend;
+    [ObservableProperty]
+    private bool showGrid = true;
 }
