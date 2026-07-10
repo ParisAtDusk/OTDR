@@ -19,14 +19,16 @@ public partial class MainWindow : Window
     private GridLength _lastSettingsWidth = new(280);
     private bool _settingsVisible = true;
     private readonly ISettingsService _settings;
+    private readonly IFileDialogService _fileDialogs;
 
-    public MainWindow(ISettingsService settings) : this(settings, new ScottPlotView()) { }
+    // public MainWindow(ISettingsService settings, IFileDialogService fileDialogs) : this(settings, new ScottPlotView(), fileDialogs) { }
 
-    public MainWindow(ISettingsService settings, IPlotView plot)
+    public MainWindow(ISettingsService settings, IPlotView plot, IFileDialogService fileDialogs)
     {
         InitializeComponent();
         _settings = settings;
         _plot = plot;
+        _fileDialogs = fileDialogs;
         PlotContainer.Content = _plot.AsControl();
         Closing += OnWindowClosing;
 
@@ -143,10 +145,19 @@ public partial class MainWindow : Window
         InfoText.Text = "Cleared";
     }
 
-    private void OnExportClick(object? sender, RoutedEventArgs e)
+    private async void OnExportClick(object? sender, RoutedEventArgs e)
     {
-        _plot.SavePng("chart_export.png", 1000, 600);
-        InfoText.Text = "Exported to chart_export.png";
+        var path = await _fileDialogs.ShowSaveCsvDialogAsync(this);
+
+        if (path is null)
+        {
+            InfoText.Text = "Export cancelled";
+            return;
+        }
+
+        InfoText.Text = $"Selected: {path}";
+        // _plot.SavePng("chart_export.png", 1000, 600);
+        // InfoText.Text = "Exported to chart_export.png";
     }
 
     private void OnExitClick(object? sender, RoutedEventArgs e)

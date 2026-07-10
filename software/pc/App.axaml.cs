@@ -19,6 +19,7 @@ public partial class App : Application
 
         services.AddSingleton<ISettingsService, JsonSettingService>();
         services.AddSingleton<IPlotView, ScottPlotView>();
+        services.AddSingleton<IFileDialogService, FileDialogService>();
         services.AddTransient<MainWindow>();
         Services = services.BuildServiceProvider();
     }
