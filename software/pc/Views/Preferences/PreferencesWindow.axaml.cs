@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 
@@ -5,10 +6,16 @@ namespace OTDR.Views.Preferences;
 
 public partial class PreferencesWindow : Window
 {
-    public PreferencesWindow()
+    private readonly ISettingsService _settings;
+    public PreferencesWindow(ISettingsService settings)
     {
         InitializeComponent();
+        _settings = settings;
     }
 
-    private void OnCloseClick(object? sender, RoutedEventArgs e) => Close();
+    private async void OnCloseClick(object? sender, RoutedEventArgs e)
+    {
+        await _settings.SaveAsync();
+        Close();
+    }
 }

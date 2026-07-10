@@ -18,20 +18,34 @@ public partial class MainWindow : Window
 
     private GridLength _lastSettingsWidth = new(280);
     private bool _settingsVisible = true;
+    private readonly ISettingsService _settings;
 
-    public MainWindow() : this(new ScottPlotView()) { }
+    public MainWindow(ISettingsService settings) : this(settings, new ScottPlotView()) { }
 
-    public MainWindow(IPlotView plot)
+    public MainWindow(ISettingsService settings, IPlotView plot)
     {
         InitializeComponent();
-
+        _settings = settings;
         _plot = plot;
         PlotContainer.Content = _plot.AsControl();
+        Closing += OnWindowClosing;
 
         DataContext = _vm;
         _vm.PropertyChanged += OnViewModelPropertyChanged;
 
         SetupInitialPlot();
+    }
+    public void ApplySettings()
+    {
+        Width = _settings.Settings.WindowWidth;
+        Height = _settings.Settings.WindowHeight;
+        Application.Current!.RequestedThemeVariant =
+            _settings.Settings.CurrentTheme switch
+            {
+                AppSettings.Theme.Dark => ThemeVariant.Dark,
+                AppSettings.Theme.Light => ThemeVariant.Light,
+                _ => ThemeVariant.Default,
+            };
     }
 
     private void SetupInitialPlot()
@@ -87,15 +101,25 @@ public partial class MainWindow : Window
         PlotGeneratedData();
     }
 
-    private void OnThemeClick(object? sender, RoutedEventArgs e)
+    private async void OnThemeClick(object? sender, RoutedEventArgs e)
     {
-        Application.Current!.RequestedThemeVariant =
+        var theme =
             (sender as MenuItem)?.Header switch
             {
-                "Dark" => ThemeVariant.Dark,
-                "Light" => ThemeVariant.Light,
-                _ => ThemeVariant.Default,
+                "Dark" => AppSettings.Theme.Dark,
+                "Light" => AppSettings.Theme.Light,
+                _ => AppSettings.Theme.Default,
             };
+        _settings.Settings.CurrentTheme = theme;
+
+        Application.Current!.RequestedThemeVariant = theme switch
+        {
+            AppSettings.Theme.Dark => ThemeVariant.Dark,
+            AppSettings.Theme.Light => ThemeVariant.Light,
+            _ => ThemeVariant.Default,
+        };
+
+        await _settings.SetThemeAsync(theme);
     }
 
     private void OnConnectionClick(object? sender, RoutedEventArgs e)
@@ -103,7 +127,7 @@ public partial class MainWindow : Window
         InfoText.Text = (sender as MenuItem)?.Name switch
         {
             "RefreshPorts" => "Connection",
-            _=> InfoText.Text = "NOP",
+            _ => InfoText.Text = "NOP",
         };
     }
 
@@ -133,7 +157,7 @@ public partial class MainWindow : Window
 
     private async void OnPreferencesClick(object? sender, RoutedEventArgs e)
     {
-        var prefWindow = new PreferencesWindow();
+        var prefWindow = new PreferencesWindow(_settings);
         await prefWindow.ShowDialog(this);
     }
 
@@ -177,4 +201,10 @@ public partial class MainWindow : Window
         var aboutWindow = new AboutWindow();
         await aboutWindow.ShowDialog(this);
     }
+    private async void OnWindowClosing(object? sender, WindowClosingEventArgs e)
+{
+    _settings.Settings.WindowWidth = Width;
+    _settings.Settings.WindowHeight = Height;
+
+}
 }
