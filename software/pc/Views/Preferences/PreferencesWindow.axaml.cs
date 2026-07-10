@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using OTDR.Core.Interfaces;
 
 namespace OTDR.Views.Preferences;
 

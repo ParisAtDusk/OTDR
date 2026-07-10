@@ -5,6 +5,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Microsoft.Extensions.DependencyInjection;
 using OTDR.Views;
+using OTDR.Core.Interfaces;
 
 namespace OTDR;
 

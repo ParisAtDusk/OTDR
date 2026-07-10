@@ -1,6 +1,7 @@
 using Avalonia.Controls;
 using ScottPlot.Avalonia;
 using Avalonia.Styling;
+using OTDR.Core.Interfaces;
 
 public class ScottPlotView : IPlotView
 {

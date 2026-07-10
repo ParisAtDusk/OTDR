@@ -19,6 +19,7 @@
     <!-- Themes -->
     <!-- <PackageReference Include="Avalonia.Themes.Fluent" Version="12.0.3" /> -->
     <PackageReference Include="Semi.Avalonia" Version="12.0.3" />
+    <PackageReference Include="System.IO.Ports" Version="10.0.9" />
     <!-- <PackageReference Include="SukiUI" Version="7.0.1" /> -->
     <!-- <PackageReference Include="Material.Avalonia" Version="3.17.0" /> -->
     

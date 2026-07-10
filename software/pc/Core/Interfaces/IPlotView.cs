@@ -1,6 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Media;
 
+namespace OTDR.Core.Interfaces;
 public sealed record PlotTheme(
     Color Background,
     Color DataBackground,

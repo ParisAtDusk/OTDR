@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 
+namespace OTDR.Core.Interfaces;
 public interface ISettingsService
 {
     AppSettings Settings { get; }

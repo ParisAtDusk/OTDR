@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
-using OTDR;
+using OTDR.Core.Interfaces;
 
 public class JsonSettingService : ISettingsService
 {

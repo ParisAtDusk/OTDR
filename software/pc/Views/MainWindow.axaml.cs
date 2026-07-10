@@ -7,6 +7,9 @@ using Avalonia.Styling;
 using OTDR.Views.Preferences;
 using OTDR.Views.About;
 using OTDR.Views.ViewModels;
+using OTDR.Core.Interfaces;
+using OTDR.Core.Services.Connections;
+using OTDR.Core.Models.Connections;
 
 namespace OTDR.Views;
 
@@ -20,6 +23,9 @@ public partial class MainWindow : Window
     private bool _settingsVisible = true;
     private readonly ISettingsService _settings;
     private readonly IFileDialogService _fileDialogs;
+    private readonly ConnectionManager _connectionManager = new();
+    private readonly ITransportFactory _transportFactory = new TransportFactory();
+    private IScpiTransport? _transport;
 
     // public MainWindow(ISettingsService settings, IFileDialogService fileDialogs) : this(settings, new ScottPlotView(), fileDialogs) { }
 
@@ -78,7 +84,7 @@ public partial class MainWindow : Window
     private void PlotGeneratedData()
     {
         double frequency = _vm.OnTime / 1000;
-        int count = 100;
+        int count = 1000;
         double[] xs = new double[count];
         double[] ys = new double[count];
 
@@ -126,11 +132,51 @@ public partial class MainWindow : Window
 
     private void OnConnectionClick(object? sender, RoutedEventArgs e)
     {
-        InfoText.Text = (sender as MenuItem)?.Name switch
+        RefreshConnectionMenu();
+    }
+
+    private void RefreshConnectionMenu()
+    {
+        while (ConnectionMenuItem.Items.Count > 2)
+            ConnectionMenuItem.Items.RemoveAt(2);
+
+        foreach (var provider in _connectionManager.Providers)
         {
-            "RefreshPorts" => "Connection",
-            _ => InfoText.Text = "NOP",
-        };
+            var submenu = new MenuItem { Header = provider.Name };
+
+            foreach (var endpoint in provider.GetConnections())
+            {
+                var item = new MenuItem
+                {
+                    Header = endpoint.DisplayName,
+                    Tag = endpoint
+                };
+                item.Click += OnEndpointSelected;
+                submenu.Items.Add(item);
+            }
+
+            if (submenu.Items.Count == 0)
+                submenu.Items.Add(new MenuItem { Header = "(none found)", IsEnabled = false });
+
+            ConnectionMenuItem.Items.Add(submenu);
+        }
+    }
+    private void OnEndpointSelected(object? sender, RoutedEventArgs e)
+    {
+        var item = (MenuItem)sender!;
+        var endpoint = (DeviceEndpoint)item.Tag!;
+
+        _transport?.Dispose();
+        _transport = _transportFactory.Create(endpoint);
+
+        try
+        {
+            _transport.Connect();
+        }
+        catch (Exception ex)
+        {
+            // TODO: Log or show an error
+        }
     }
 
     private void OnStartClick(object? sender, RoutedEventArgs e)
