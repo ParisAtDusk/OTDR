@@ -30,8 +30,6 @@ public partial class MainWindow : Window
     private IScpiTransport? _transport;
     private readonly ILogger<MainWindow> _logger;
 
-    // public MainWindow(ISettingsService settings, IFileDialogService fileDialogs) : this(settings, new ScottPlotView(), fileDialogs) { }
-
     public MainWindow(ISettingsService settings, IPlotView plot, IFileDialogService fileDialogs, ILogger<MainWindow> logger)
     {
         InitializeComponent();

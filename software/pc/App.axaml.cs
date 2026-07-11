@@ -8,6 +8,7 @@ using OTDR.Views;
 using OTDR.Core.Interfaces;
 using Microsoft.Extensions.Logging;
 using Serilog;
+using OTDR.Plotting.LiveCharts;
 
 namespace OTDR;
 
@@ -25,9 +26,21 @@ public partial class App : Application
             builder.ClearProviders();
             builder.AddSerilog(dispose: true);
         });
-        
+
+        services.AddSingleton<IPlotView>(sp =>
+        {
+            var settings = sp.GetRequiredService<ISettingsService>().Settings;
+            return settings.PlottingLibrary switch
+            {
+                AppSettings.PlottingBackend.LiveCharts => new LiveChartsPlotView(),
+                AppSettings.PlottingBackend.ScottPlot => new ScottPlotView(),
+                _ => new ScottPlotView(),
+            };
+        });
+
         services.AddSingleton<ISettingsService, JsonSettingService>();
-        services.AddSingleton<IPlotView, ScottPlotView>();
+        // services.AddSingleton<IPlotView, LiveChartsPlotView>();
+        // services.AddSingleton<IPlotView, ScottPlotView>();
         services.AddSingleton<IFileDialogService, FileDialogService>();
         services.AddTransient<MainWindow>();
         Services = services.BuildServiceProvider();
@@ -38,11 +51,13 @@ public partial class App : Application
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             var settingsService = Services.GetRequiredService<ISettingsService>();
+            Task.Run(() => settingsService.LoadAsync()).GetAwaiter().GetResult();
 
             var mainWindow = Services.GetRequiredService<MainWindow>();
             desktop.MainWindow = mainWindow;
+            mainWindow.ApplySettings();
 
-            _ = InitializeAsync(settingsService, mainWindow);
+            // _ = InitializeAsync(settingsService, mainWindow);
 
             desktop.Exit += async (_, _) =>
             {
