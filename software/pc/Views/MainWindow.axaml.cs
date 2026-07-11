@@ -10,6 +10,8 @@ using OTDR.Views.ViewModels;
 using OTDR.Core.Interfaces;
 using OTDR.Core.Services.Connections;
 using OTDR.Core.Models.Connections;
+using Microsoft.Extensions.Logging;
+using System.Threading.Tasks;
 
 namespace OTDR.Views;
 
@@ -26,15 +28,17 @@ public partial class MainWindow : Window
     private readonly ConnectionManager _connectionManager = new();
     private readonly ITransportFactory _transportFactory = new TransportFactory();
     private IScpiTransport? _transport;
+    private readonly ILogger<MainWindow> _logger;
 
     // public MainWindow(ISettingsService settings, IFileDialogService fileDialogs) : this(settings, new ScottPlotView(), fileDialogs) { }
 
-    public MainWindow(ISettingsService settings, IPlotView plot, IFileDialogService fileDialogs)
+    public MainWindow(ISettingsService settings, IPlotView plot, IFileDialogService fileDialogs, ILogger<MainWindow> logger)
     {
         InitializeComponent();
         _settings = settings;
         _plot = plot;
         _fileDialogs = fileDialogs;
+        _logger = logger;
         PlotContainer.Content = _plot.AsControl();
         Closing += OnWindowClosing;
 
@@ -161,21 +165,22 @@ public partial class MainWindow : Window
             ConnectionMenuItem.Items.Add(submenu);
         }
     }
-    private void OnEndpointSelected(object? sender, RoutedEventArgs e)
+    private async void OnEndpointSelected(object? sender, RoutedEventArgs e)
     {
-        var item = (MenuItem)sender!;
-        var endpoint = (DeviceEndpoint)item.Tag!;
+        if(sender is not MenuItem { Tag: DeviceEndpoint endpoint } item) return;
 
         _transport?.Dispose();
         _transport = _transportFactory.Create(endpoint);
 
         try
         {
-            _transport.Connect();
+            await Task.Run(() => _transport.Connect());
+            _logger.LogInformation("Connected to {Endpoint}", endpoint);
         }
         catch (Exception ex)
         {
-            // TODO: Log or show an error
+            _logger.LogError(ex, "Failed to connect to {Endpoint}", endpoint);
+            _transport = null;
         }
     }
 

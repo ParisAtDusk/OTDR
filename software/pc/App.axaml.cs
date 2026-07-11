@@ -6,6 +6,8 @@ using Avalonia.Markup.Xaml;
 using Microsoft.Extensions.DependencyInjection;
 using OTDR.Views;
 using OTDR.Core.Interfaces;
+using Microsoft.Extensions.Logging;
+using Serilog;
 
 namespace OTDR;
 
@@ -18,6 +20,12 @@ public partial class App : Application
         AvaloniaXamlLoader.Load(this);
         var services = new ServiceCollection();
 
+        services.AddLogging(builder =>
+        {
+            builder.ClearProviders();
+            builder.AddSerilog(dispose: true);
+        });
+        
         services.AddSingleton<ISettingsService, JsonSettingService>();
         services.AddSingleton<IPlotView, ScottPlotView>();
         services.AddSingleton<IFileDialogService, FileDialogService>();

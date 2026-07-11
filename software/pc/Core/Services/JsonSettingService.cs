@@ -1,40 +1,42 @@
 using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using OTDR.Core.Interfaces;
 
 public class JsonSettingService : ISettingsService
 {
     private const string FileName = "settings.json";
+    private readonly ILogger<JsonSettingService> _logger;
     public AppSettings Settings { get; private set; } = new();
+
+    public JsonSettingService(ILogger<JsonSettingService> logger)
+    {
+        _logger = logger;
+    }
 
     public async Task LoadAsync()
     {
-        Console.WriteLine("Loading settings");
+        _logger.LogInformation("Loading settings from {FileName}", FileName);
         try
         {
             Settings = await JsonStorage.LoadAsync<AppSettings>(FileName) ?? new AppSettings();
         }
         catch (Exception ex)
         {
-            // TODO: Add logging
-            Console.WriteLine("Setting loading failed!");
+            _logger.LogError(ex, "Failed to load settings from {FileName}, using defaults", FileName);
             Settings = new AppSettings();
         }
     }
 
     public async Task SaveAsync()
     {
-        Console.WriteLine("Saving settings");
         try
         {
             await JsonStorage.SaveAsync(FileName, Settings);
         }
         catch (Exception ex)
         {
-            Console.WriteLine("Saving settings failed!");
-            // TODO: Add logging
+            _logger.LogError(ex, "Failed to save settings to {FileName}", FileName);
         }
     }
 }
