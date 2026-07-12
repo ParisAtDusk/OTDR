@@ -2,10 +2,68 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="OTDR.Views.Preferences.PreferencesWindow"
         Title="Preferences"
-        Width="400" Height="300"
+        Width="420" Height="320"
         WindowStartupLocation="CenterOwner">
-    <StackPanel Margin="20" Spacing="10">
-        <TextBlock Text="Preferences go here" FontSize="16"/>
-        <Button Content="Close" Click="OnCloseClick" HorizontalAlignment="Right"/>
-    </StackPanel>
+        <!-- Background="{DynamicResource SemiColorBackground0}" -->
+    <DockPanel Margin="20">
+        <!-- Header -->
+        <StackPanel DockPanel.Dock="Top" Margin="0,0,0,20">
+            <TextBlock Text="Settings"
+                       FontSize="20"
+                       FontWeight="SemiBold"
+                       Foreground="{DynamicResource SemiColorText0}"/>
+        </StackPanel>
+
+        <!-- Footer -->
+        <Button DockPanel.Dock="Bottom"
+                Content="Close"
+                HorizontalAlignment="Right"
+                Margin="0,20,0,0"
+                Padding="18,8"
+                Theme="{StaticResource SolidButton}"
+                Classes="Primary"
+                Click="OnCloseClick"/>
+
+        <!-- Settings cards -->
+        <StackPanel Spacing="10">
+            <Border Classes="Shadow"
+                    Background="{DynamicResource SemiColorFill1}"
+                    CornerRadius="8"
+                    Padding="16,12">
+                <Grid ColumnDefinitions="8*,5*">
+                    <TextBlock Text="Placeholder"
+                               VerticalAlignment="Center"
+                               FontSize="13"/>
+                    <CheckBox Grid.Column="1" HorizontalAlignment="Right"/>
+                </Grid>
+            </Border>
+
+            <Border Classes="Shadow"
+                    Background="{DynamicResource SemiColorFill1}"
+                    CornerRadius="8"
+                    Padding="16,12">
+                <Grid ColumnDefinitions="8*,5*">
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="Plot Backend"
+                                   FontSize="13"/>
+                        <TextBlock Text="Requires restart"
+                                   FontSize="11"
+                                   Foreground="{DynamicResource SemiColorText2}"/>
+                    </StackPanel>
+                    <ComboBox Grid.Column="1"
+                              Width="150"
+                              HorizontalAlignment="Right"
+                              SelectedIndex="0"
+                              CornerRadius="6">
+                        <!--
+                            ItemsSource="{Binding Themes}"
+                            SelectedItem="{Binding SelectedTheme}"
+                            TODO: Bind it -->
+                        <ComboBoxItem Content="ScottPlot"/>
+                        <ComboBoxItem Content="LiveCharts"/>
+                    </ComboBox>
+                </Grid>
+            </Border>
+        </StackPanel>
+    </DockPanel>
 </Window>

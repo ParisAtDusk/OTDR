@@ -30,6 +30,16 @@ public partial class MainWindow : Window
     private IScpiTransport? _transport;
     private readonly ILogger<MainWindow> _logger;
 
+    public MainWindow()
+{
+    InitializeComponent();
+
+    if (Design.IsDesignMode)
+    {
+        DataContext = new MainWindowViewModel();
+    }
+}
+
     public MainWindow(ISettingsService settings, IPlotView plot, IFileDialogService fileDialogs, ILogger<MainWindow> logger)
     {
         InitializeComponent();

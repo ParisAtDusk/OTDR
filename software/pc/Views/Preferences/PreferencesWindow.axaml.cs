@@ -8,6 +8,10 @@ namespace OTDR.Views.Preferences;
 public partial class PreferencesWindow : Window
 {
     private readonly ISettingsService _settings;
+    public PreferencesWindow()
+    {
+        InitializeComponent();
+    }
     public PreferencesWindow(ISettingsService settings)
     {
         InitializeComponent();
