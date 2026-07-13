@@ -1,8 +1,11 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:OTDR.Views.ViewModels"
+        x:DataType="vm:PreferencesWindowViewModel"
         x:Class="OTDR.Views.Preferences.PreferencesWindow"
         Title="Preferences"
-        Width="420" Height="320"
+        Width="420" Height="350"
+        MinWidth="350" MinHeight="300"
         WindowStartupLocation="CenterOwner">
         <!-- Background="{DynamicResource SemiColorBackground0}" -->
     <DockPanel Margin="20">
@@ -25,45 +28,41 @@
                 Click="OnCloseClick"/>
 
         <!-- Settings cards -->
-        <StackPanel Spacing="10">
-            <Border Classes="Shadow"
-                    Background="{DynamicResource SemiColorFill1}"
-                    CornerRadius="8"
-                    Padding="16,12">
-                <Grid ColumnDefinitions="8*,5*">
-                    <TextBlock Text="Placeholder"
-                               VerticalAlignment="Center"
-                               FontSize="13"/>
-                    <CheckBox Grid.Column="1" HorizontalAlignment="Right"/>
-                </Grid>
-            </Border>
+         <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel Spacing="10">
+                <Border Classes="Shadow"
+                        Background="{DynamicResource SemiColorFill1}"
+                        CornerRadius="8"
+                        Padding="16,12">
+                    <Grid ColumnDefinitions="8*,5*">
+                        <TextBlock Text="Placeholder"
+                                VerticalAlignment="Center"
+                                FontSize="13"/>
+                        <CheckBox Grid.Column="1" HorizontalAlignment="Right"/>
+                    </Grid>
+                </Border>
 
-            <Border Classes="Shadow"
-                    Background="{DynamicResource SemiColorFill1}"
-                    CornerRadius="8"
-                    Padding="16,12">
-                <Grid ColumnDefinitions="8*,5*">
-                    <StackPanel VerticalAlignment="Center">
-                        <TextBlock Text="Plot Backend"
-                                   FontSize="13"/>
-                        <TextBlock Text="Requires restart"
-                                   FontSize="11"
-                                   Foreground="{DynamicResource SemiColorText2}"/>
-                    </StackPanel>
-                    <ComboBox Grid.Column="1"
-                              Width="150"
-                              HorizontalAlignment="Right"
-                              SelectedIndex="0"
-                              CornerRadius="6">
-                        <!--
-                            ItemsSource="{Binding Themes}"
-                            SelectedItem="{Binding SelectedTheme}"
-                            TODO: Bind it -->
-                        <ComboBoxItem Content="ScottPlot"/>
-                        <ComboBoxItem Content="LiveCharts"/>
-                    </ComboBox>
-                </Grid>
-            </Border>
-        </StackPanel>
+                <Border Classes="Shadow"
+                        Background="{DynamicResource SemiColorFill1}"
+                        CornerRadius="8"
+                        Padding="16,12">
+                    <Grid ColumnDefinitions="8*,5*">
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="Plot Backend"
+                                    FontSize="13"/>
+                            <TextBlock Text="Requires restart"
+                                    FontSize="11"
+                                    Foreground="{DynamicResource SemiColorText2}"/>
+                        </StackPanel>
+                        <ComboBox Grid.Column="1"
+                            Width="150"
+                            HorizontalAlignment="Right"
+                            CornerRadius="6"
+                            ItemsSource="{Binding PlottingBackends}"
+                            SelectedItem="{Binding SelectedPlottingBackend}" />
+                    </Grid>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
     </DockPanel>
 </Window>

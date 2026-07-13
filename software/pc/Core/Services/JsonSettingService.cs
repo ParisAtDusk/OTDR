@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using OTDR.Core.Interfaces;
+using OTDR.Core.Models.Settings;
 
 public class JsonSettingService : ISettingsService
 {

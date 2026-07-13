@@ -1,5 +1,5 @@
 
-
+namespace OTDR.Core.Models.Settings;
 public sealed class AppSettings
 {
     public enum Theme

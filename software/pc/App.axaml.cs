@@ -9,6 +9,9 @@ using OTDR.Core.Interfaces;
 using Microsoft.Extensions.Logging;
 using Serilog;
 using OTDR.Plotting.LiveCharts;
+using OTDR.Core.Models.Settings;
+using OTDR.Views.Preferences;
+using OTDR.Views.ViewModels;
 
 namespace OTDR;
 
@@ -43,6 +46,8 @@ public partial class App : Application
         // services.AddSingleton<IPlotView, ScottPlotView>();
         services.AddSingleton<IFileDialogService, FileDialogService>();
         services.AddTransient<MainWindow>();
+        services.AddTransient<PreferencesWindowViewModel>();
+        services.AddTransient<PreferencesWindow>();
         Services = services.BuildServiceProvider();
     }
 

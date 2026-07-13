@@ -12,41 +12,45 @@ using OTDR.Core.Services.Connections;
 using OTDR.Core.Models.Connections;
 using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
+using OTDR.Core.Models.Settings;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace OTDR.Views;
 
 public partial class MainWindow : Window
 {
-    private readonly IPlotView _plot;
+    private readonly IPlotView _plot = null!;
     private readonly Random _random = new();
     private readonly MainWindowViewModel _vm = new();
 
     private GridLength _lastSettingsWidth = new(280);
     private bool _settingsVisible = true;
-    private readonly ISettingsService _settings;
-    private readonly IFileDialogService _fileDialogs;
+    private readonly ISettingsService _settings = null!;
+    private readonly IFileDialogService _fileDialogs = null!;
     private readonly ConnectionManager _connectionManager = new();
     private readonly ITransportFactory _transportFactory = new TransportFactory();
     private IScpiTransport? _transport;
-    private readonly ILogger<MainWindow> _logger;
+    private readonly ILogger<MainWindow> _logger = null!;
+    private readonly IServiceProvider _services;
 
     public MainWindow()
-{
-    InitializeComponent();
-
-    if (Design.IsDesignMode)
     {
-        DataContext = new MainWindowViewModel();
-    }
-}
+        InitializeComponent();
 
-    public MainWindow(ISettingsService settings, IPlotView plot, IFileDialogService fileDialogs, ILogger<MainWindow> logger)
+        if (Design.IsDesignMode)
+        {
+            DataContext = new MainWindowViewModel();
+        }
+    }
+
+    public MainWindow(ISettingsService settings, IPlotView plot, IFileDialogService fileDialogs, ILogger<MainWindow> logger, IServiceProvider services)
     {
         InitializeComponent();
         _settings = settings;
         _plot = plot;
         _fileDialogs = fileDialogs;
         _logger = logger;
+        _services = services;
         PlotContainer.Content = _plot.AsControl();
         Closing += OnWindowClosing;
 
@@ -227,7 +231,7 @@ public partial class MainWindow : Window
 
     private async void OnPreferencesClick(object? sender, RoutedEventArgs e)
     {
-        var prefWindow = new PreferencesWindow(_settings);
+        var prefWindow = _services.GetRequiredService<PreferencesWindow>();
         await prefWindow.ShowDialog(this);
     }
 
@@ -272,9 +276,8 @@ public partial class MainWindow : Window
         await aboutWindow.ShowDialog(this);
     }
     private async void OnWindowClosing(object? sender, WindowClosingEventArgs e)
-{
-    _settings.Settings.WindowWidth = Width;
-    _settings.Settings.WindowHeight = Height;
-
-}
+    {
+        _settings.Settings.WindowWidth = Width;
+        _settings.Settings.WindowHeight = Height;
+    }
 }
