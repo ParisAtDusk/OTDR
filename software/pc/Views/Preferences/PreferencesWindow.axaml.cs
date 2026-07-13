@@ -6,8 +6,16 @@ namespace OTDR.Views.Preferences;
 
 public partial class PreferencesWindow : Window
 {
-    private readonly PreferencesWindowViewModel _vm;
-
+    private readonly PreferencesWindowViewModel _vm = null!;
+    public PreferencesWindow()
+    {
+        InitializeComponent();
+        if (Design.IsDesignMode)
+        {
+            _vm = new PreferencesWindowViewModel();
+            DataContext = _vm;
+        }
+    }
     public PreferencesWindow(PreferencesWindowViewModel vm)
     {
         InitializeComponent();

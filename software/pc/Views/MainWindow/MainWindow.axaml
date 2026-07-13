@@ -1,6 +1,7 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:OTDR.Views.ViewModels"
+        xmlns:helpers="clr-namespace:OTDR.Core.Helpers"
         x:DataType="vm:MainWindowViewModel"
         x:Class="OTDR.Views.MainWindow"
         Title="OTDR"
@@ -41,10 +42,6 @@
 
                 <MenuItem Header="_Settings">
                     <MenuItem Header="_Preferences..." Click="OnPreferencesClick"/>
-                    <MenuItem x:Name="ThemeMenuItem" Header="_Theme">
-                        <MenuItem Header="Dark"  Click="OnThemeClick"/>
-                        <MenuItem Header="Light" Click="OnThemeClick"/>
-                    </MenuItem>
                 </MenuItem>
 
                 <MenuItem Header="_Device">
@@ -134,13 +131,15 @@
                             <Grid Margin="4"
                                ColumnDefinitions="Auto, 80, 5, *"
                                RowDefinitions="Auto, Auto, Auto, Auto, Auto, Auto">
-                            <TextBlock Text="Line width"  Grid.Row="0" Grid.Column="0" VerticalAlignment="Center"/>
-                            <TextBox Grid.Row="0" Grid.Column="1" Margin="0,0,0,0" TextAlignment="Center"
-                                Text="{Binding LineWidth, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, StringFormat={}{0:F1}}}"
-                                PlaceholderText="1"/>
-                            <Slider x:Name="LineWidthSlider" Grid.Row="0" Grid.Column="3"
-                                    Minimum="1" Maximum="8" Value="{Binding LineWidth, Mode=TwoWay}"
-                                    Margin="0,0,0,8"/>
+                                <TextBlock Text="Line width"  Grid.Row="0" Grid.Column="0" VerticalAlignment="Center"/>
+                                <NumericUpDown
+                                    Grid.Row="0" Grid.Column="3"
+                                    Value="{Binding LineWidth, Mode=TwoWay, FallbackValue=1.0, TargetNullValue=1.0}"
+                                    Minimum="1.0" Maximum="10" Increment="0.1"
+                                    FormatString="F1"
+                                    ParsingNumberStyle="Float"
+                                    helpers:NumericUpDownFix.AcceptComma="True"
+                                    helpers:NumericUpDownFix.DefaultValue="1.0" />
                             </Grid>
                         </StackPanel>
                     </Expander>

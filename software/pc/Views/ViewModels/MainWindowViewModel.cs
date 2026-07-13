@@ -92,8 +92,13 @@ public partial class MainWindowViewModel : ObservableObject
     }
 
     // ---- Other plot parameters ----
-    [ObservableProperty]
-    private double lineWidth = 1.0;
+    private double? _lineWidth = 1.0;
+    public double? LineWidth
+    {
+        get => _lineWidth;
+        set => SetProperty(ref _lineWidth, value ?? 1.0);
+    }
+
     [ObservableProperty]
     private bool showMarkers;
     [ObservableProperty]

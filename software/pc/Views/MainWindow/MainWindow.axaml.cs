@@ -31,7 +31,7 @@ public partial class MainWindow : Window
     private readonly ITransportFactory _transportFactory = new TransportFactory();
     private IScpiTransport? _transport;
     private readonly ILogger<MainWindow> _logger = null!;
-    private readonly IServiceProvider _services;
+    private readonly IServiceProvider _services = null!;
 
     public MainWindow()
     {
@@ -123,27 +123,6 @@ public partial class MainWindow : Window
     {
         InfoText.Text = "Plotted";
         PlotGeneratedData();
-    }
-
-    private async void OnThemeClick(object? sender, RoutedEventArgs e)
-    {
-        var theme =
-            (sender as MenuItem)?.Header switch
-            {
-                "Dark" => AppSettings.Theme.Dark,
-                "Light" => AppSettings.Theme.Light,
-                _ => AppSettings.Theme.Default,
-            };
-        _settings.Settings.CurrentTheme = theme;
-
-        Application.Current!.RequestedThemeVariant = theme switch
-        {
-            AppSettings.Theme.Dark => ThemeVariant.Dark,
-            AppSettings.Theme.Light => ThemeVariant.Light,
-            _ => ThemeVariant.Default,
-        };
-
-        await _settings.SetThemeAsync(theme);
     }
 
     private void OnConnectionClick(object? sender, RoutedEventArgs e)
