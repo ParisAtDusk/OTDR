@@ -1,15 +1,29 @@
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using OTDR.Core.Interfaces;
+using OTDR.Core.Models.Connections;
 
 namespace OTDR.Core.Services.Connections;
 
-public class ConnectionManager
+public class ConnectionManager : IConnectionManager
 {
-    public List<IConnectionProvider> Providers { get; } = new();
+    private readonly IReadOnlyList<IConnectionProvider> _providers;
 
-    public ConnectionManager()
+    public IReadOnlyList<IConnectionProvider> Providers => _providers;
+
+    public ConnectionManager(IEnumerable<IConnectionProvider> providers)
     {
-        Providers.Add(new SerialConnectionProvider());
-        // Providers.Add(new EthernetConnectionProvider()); // Maybe in the future
+        _providers = providers.ToList();
+    }
+
+    public Task<IReadOnlyList<DeviceEndpoint>> DiscoverAsync()
+    {
+        var endpoints = new List<DeviceEndpoint>();
+
+        foreach (var provider in _providers)
+            endpoints.AddRange(provider.GetConnections());
+
+        return Task.FromResult<IReadOnlyList<DeviceEndpoint>>(endpoints);
     }
 }

@@ -27,7 +27,7 @@
     <PackageReference Include="System.IO.Ports" Version="10.0.9" />
     <!-- <PackageReference Include="SukiUI" Version="7.0.1" /> -->
     <!-- <PackageReference Include="Material.Avalonia" Version="3.17.0" /> -->
-    
+    <AvaloniaResource Include="Views\About\Assets\**" />
   </ItemGroup>
 
 </Project>

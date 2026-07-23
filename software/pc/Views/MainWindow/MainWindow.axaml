@@ -2,11 +2,16 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:OTDR.Views.ViewModels"
         xmlns:helpers="clr-namespace:OTDR.Core.Helpers"
+        xmlns:conv="clr-namespace:OTDR.Core.Helpers.Converters"
         x:DataType="vm:MainWindowViewModel"
         x:Class="OTDR.Views.MainWindow"
         Title="OTDR"
         Width="1100" Height="700"
         MinWidth="800" MinHeight="500">
+
+    <Window.Resources>
+        <conv:StatusKeyToBrushConverter x:Key="StatusKeyToBrushConverter"/>
+    </Window.Resources>
     
     <!-- TOP-LEVEL LAYOUT: a DockPanel so the menu bar is pinned to the
          top and everything else fills the remaining space. -->
@@ -47,6 +52,7 @@
                 <MenuItem Header="_Device">
                     <MenuItem x:Name="ConnectionMenuItem" Header="_Connection">
                         <MenuItem x:Name="RefreshPorts" Header="Refresh device list" Click="OnConnectionClick"/>
+                        <MenuItem x:Name="ClosePort" Header="Disconnect" Command="{Binding DisconnectCommand}"/>
                         <Separator/>
                     </MenuItem>
                 </MenuItem>
@@ -67,14 +73,14 @@
                 <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" Margin="0,0,12,0">
                     <Ellipse x:Name="ConnectionDot"
                         Width="10" Height="10"
-                        Fill="{DynamicResource StatusDisconnectedBrush}"/>
-                    <TextBlock x:Name="BottomStatusText" Text="Disconnected" VerticalAlignment="Center"/>
+                        Fill="{Binding StatusBrushKey, Converter={StaticResource StatusKeyToBrushConverter}}"/>
+                    <TextBlock x:Name="BottomStatusText" Text="{Binding ConnectionStatusString, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center"/>
                 </StackPanel>
 
                 <!-- Progress bar -->
                 <ProgressBar Grid.Column="1"
                             x:Name="OperationProgressBar"
-                            Minimum="0" Maximum="100" Value="50"
+                            Minimum="0" Maximum="100" Value="{Binding MeasurementProgress}"
                             Height="16"
                             IsVisible="True"
                             VerticalAlignment="Center"
@@ -154,13 +160,21 @@
                               RowDefinitions="Auto, Auto, Auto, Auto, Auto, Auto">
 
                             <TextBlock Grid.Row="0" Grid.Column="0" Text="On Time" VerticalAlignment="Center" Margin="0,0,8,8"/>
-                            <TextBox Grid.Row="0" Grid.Column="1" MaxLength="8" Margin="0,0,0,0" TextAlignment="Center"
+                            <TextBox Grid.Row="0" Grid.Column="3" MaxLength="8" Margin="0,0,0,8" TextAlignment="Center"
                                 Text="{Binding OnTimeStr, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                 PlaceholderText="500ns"/>
-                            <Slider x:Name="OnTimeSlider" Grid.Row="0" Grid.Column="3"
+                            <!-- <Slider x:Name="OnTimeSlider" Grid.Row="0" Grid.Column="3"
                                 Minimum="0.1" Maximum="20000" TickFrequency="1"
                                 Margin="0,0,0,8"
-                                Value="{Binding OnTime, Mode=TwoWay}"/>
+                                Value="{Binding OnTime, Mode=TwoWay}"/> -->
+
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Averaging" VerticalAlignment="Center" Margin="0,0,8,8"/>
+                            <NumericUpDown
+                                Grid.Row="1" Grid.Column="3"
+                                Value="{Binding SoftwareAveraging, Mode=TwoWay}"
+                                Minimum="1" Maximum="8096" Increment="1" ClipValueToMinMax="True"/>
+                            <CheckBox Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="4" x:Name="ContinuousMeasurementCheckbox" Content="Continuous Measurement"
+                                Margin="0,8,0,0" IsChecked="{Binding ContinuousMeasurement, Mode=TwoWay}"/>
                         </Grid>
                     </Expander>
 
@@ -169,8 +183,8 @@
                          to the next line when it runs out of room,
                          handy for a row/cluster of action buttons. -->
                     <UniformGrid Columns="2" Rows="1" Margin="4">
-                        <Button Content="Start" Click="OnStartClick" Width="100" Margin="0,0,8,8"/>
-                        <Button Content="Stop" Click="OnExportClick" Width="100" Margin="0,0,8,8"/>
+                        <Button Content="Start" Command="{Binding StartLiveAcquisitionCommand}" Width="100" Margin="0,0,8,8"/>
+                        <Button Content="Stop" Command="{Binding CancelLiveAcquisitionCommand}" Width="100" Margin="0,0,8,8"/>
                     </UniformGrid>
                     <Button Content="Clear" Click="OnClearClick" Width="200" Margin="0,0,8,8"/>
 

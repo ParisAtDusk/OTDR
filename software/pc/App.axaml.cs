@@ -12,6 +12,8 @@ using OTDR.Plotting.LiveCharts;
 using OTDR.Core.Models.Settings;
 using OTDR.Views.Preferences;
 using OTDR.Views.ViewModels;
+using OTDR.Core.Services.Connections;
+using OTDR.Core.Services.Devices;
 
 namespace OTDR;
 
@@ -42,10 +44,19 @@ public partial class App : Application
         });
 
         services.AddSingleton<ISettingsService, JsonSettingService>();
-        // services.AddSingleton<IPlotView, LiveChartsPlotView>();
-        // services.AddSingleton<IPlotView, ScottPlotView>();
         services.AddSingleton<IFileDialogService, FileDialogService>();
+        services.AddSingleton<ConnectionManager>();
+        #if DEBUG
+        services.AddSingleton<IOtdrDevice, FakeOtdrDevice>();
+        services.AddSingleton<IConnectionProvider, FakeConnectionProvider>();
+        #endif
+
+        services.AddSingleton<ITransportFactory, TransportFactory>();
+        services.AddSingleton<IConnectionManager, ConnectionManager>();
+        services.AddSingleton<IConnectionProvider, SerialConnectionProvider>();
+
         services.AddTransient<MainWindow>();
+        services.AddTransient<MainWindowViewModel>();
         services.AddTransient<PreferencesWindowViewModel>();
         services.AddTransient<PreferencesWindow>();
         Services = services.BuildServiceProvider();
@@ -61,8 +72,6 @@ public partial class App : Application
             var mainWindow = Services.GetRequiredService<MainWindow>();
             desktop.MainWindow = mainWindow;
             mainWindow.ApplySettings();
-
-            // _ = InitializeAsync(settingsService, mainWindow);
 
             desktop.Exit += async (_, _) =>
             {

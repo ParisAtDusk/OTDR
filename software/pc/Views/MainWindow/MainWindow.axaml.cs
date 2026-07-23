@@ -8,30 +8,23 @@ using OTDR.Views.Preferences;
 using OTDR.Views.About;
 using OTDR.Views.ViewModels;
 using OTDR.Core.Interfaces;
-using OTDR.Core.Services.Connections;
 using OTDR.Core.Models.Connections;
-using Microsoft.Extensions.Logging;
-using System.Threading.Tasks;
 using OTDR.Core.Models.Settings;
 using Microsoft.Extensions.DependencyInjection;
+using Avalonia.Media.Imaging;
 
 namespace OTDR.Views;
 
 public partial class MainWindow : Window
 {
     private readonly IPlotView _plot = null!;
-    private readonly Random _random = new();
-    private readonly MainWindowViewModel _vm = new();
+    private readonly MainWindowViewModel _vm = null!;
+    private readonly ISettingsService _settings = null!;
+    private readonly IFileDialogService _fileDialogs = null!;
+    private readonly IServiceProvider _services = null!;
 
     private GridLength _lastSettingsWidth = new(280);
     private bool _settingsVisible = true;
-    private readonly ISettingsService _settings = null!;
-    private readonly IFileDialogService _fileDialogs = null!;
-    private readonly ConnectionManager _connectionManager = new();
-    private readonly ITransportFactory _transportFactory = new TransportFactory();
-    private IScpiTransport? _transport;
-    private readonly ILogger<MainWindow> _logger = null!;
-    private readonly IServiceProvider _services = null!;
 
     public MainWindow()
     {
@@ -43,14 +36,16 @@ public partial class MainWindow : Window
         }
     }
 
-    public MainWindow(ISettingsService settings, IPlotView plot, IFileDialogService fileDialogs, ILogger<MainWindow> logger, IServiceProvider services)
+    public MainWindow(ISettingsService settings, IPlotView plot, IFileDialogService fileDialogs,
+        IServiceProvider services, MainWindowViewModel vm)
     {
         InitializeComponent();
         _settings = settings;
         _plot = plot;
         _fileDialogs = fileDialogs;
-        _logger = logger;
         _services = services;
+        _vm = vm;
+
         PlotContainer.Content = _plot.AsControl();
         Closing += OnWindowClosing;
 
@@ -59,6 +54,7 @@ public partial class MainWindow : Window
 
         SetupInitialPlot();
     }
+
     public void ApplySettings()
     {
         Width = _settings.Settings.WindowWidth;
@@ -70,6 +66,9 @@ public partial class MainWindow : Window
                 AppSettings.Theme.Light => ThemeVariant.Light,
                 _ => ThemeVariant.Default,
             };
+        _vm.LineWidth = _settings.Settings.LineWidth;
+        _vm.ShowMarkers = _settings.Settings.ShowMarkers;
+        _vm.ShowGrid = _settings.Settings.ShowGrid;
     }
 
     private void SetupInitialPlot()
@@ -77,18 +76,26 @@ public partial class MainWindow : Window
         _plot.SetTitle("OTDR");
         _plot.SetAxisLabels("Distance [km]", "Signal [dBm]");
         _plot.ShowGrid(_vm.ShowGrid);
-        PlotGeneratedData();
+
+        if (_vm.CurrentTrace is { } trace)
+            PlotTrace(trace);
+
+        UpdatePlotStyle();
     }
 
     private void OnViewModelPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
         switch (e.PropertyName)
         {
-            case nameof(MainWindowViewModel.OnTime):
+            case nameof(MainWindowViewModel.CurrentTrace):
+                if (_vm.CurrentTrace is { } trace)
+                    PlotTrace(trace);
+                break;
+
             case nameof(MainWindowViewModel.LineWidth):
             case nameof(MainWindowViewModel.ShowMarkers):
             case nameof(MainWindowViewModel.ShowLegend):
-                PlotGeneratedData();
+                UpdatePlotStyle();
                 break;
 
             case nameof(MainWindowViewModel.ShowGrid):
@@ -97,55 +104,36 @@ public partial class MainWindow : Window
         }
     }
 
-    private void PlotGeneratedData()
+    // Pushes new data onto the chart. Called only when CurrentTrace changes
+    private void PlotTrace(Core.Models.Acquisition.TraceData trace)
     {
-        double frequency = _vm.OnTime / 1000;
-        int count = 1000;
-        double[] xs = new double[count];
-        double[] ys = new double[count];
-
-        for (int i = 0; i < count; i++)
-        {
-            double x = i / (double)count * 10.0;
-            double y = Math.Sin(2 * Math.PI * frequency * x / 10.0);
-            xs[i] = x;
-            ys[i] = y;
-        }
-
-        _plot.PlotScatter(xs, ys);
-        _plot.LineWidth = (float)_vm.LineWidth;
-        _plot.MarkerSize = _vm.ShowMarkers ? 5 : 0;
-        _plot.LegendText = _vm.ShowLegend ? "Example series" : null;
+        _plot.PlotScatter(trace.DistanceKm, trace.SignalDbm);
+        UpdatePlotStyle();
         _plot.AutoScale();
     }
 
-    private void OnPlotClick(object? sender, RoutedEventArgs e)
+    // Adjusts rendering of the existing series
+    private void UpdatePlotStyle()
     {
-        InfoText.Text = "Plotted";
-        PlotGeneratedData();
+        _plot.LineWidth = (float)_vm.LineWidth;
+        _plot.MarkerSize = _vm.ShowMarkers ? 5 : 0;
+        _plot.LegendText = _vm.ShowLegend ? "Trace" : null;
     }
 
-    private void OnConnectionClick(object? sender, RoutedEventArgs e)
-    {
-        RefreshConnectionMenu();
-    }
+    private void OnConnectionClick(object? sender, RoutedEventArgs e) => RefreshConnectionMenu();
 
     private void RefreshConnectionMenu()
     {
         while (ConnectionMenuItem.Items.Count > 2)
             ConnectionMenuItem.Items.RemoveAt(2);
 
-        foreach (var provider in _connectionManager.Providers)
+        foreach (var provider in _vm.ConnectionProviders)
         {
             var submenu = new MenuItem { Header = provider.Name };
 
             foreach (var endpoint in provider.GetConnections())
             {
-                var item = new MenuItem
-                {
-                    Header = endpoint.DisplayName,
-                    Tag = endpoint
-                };
+                var item = new MenuItem { Header = endpoint.DisplayName, Tag = endpoint };
                 item.Click += OnEndpointSelected;
                 submenu.Items.Add(item);
             }
@@ -156,35 +144,20 @@ public partial class MainWindow : Window
             ConnectionMenuItem.Items.Add(submenu);
         }
     }
-    private async void OnEndpointSelected(object? sender, RoutedEventArgs e)
+
+    private void OnEndpointSelected(object? sender, RoutedEventArgs e)
     {
-        if(sender is not MenuItem { Tag: DeviceEndpoint endpoint } item) return;
+        if (sender is not MenuItem { Tag: DeviceEndpoint endpoint }) return;
 
-        _transport?.Dispose();
-        _transport = _transportFactory.Create(endpoint);
-
-        try
-        {
-            await Task.Run(() => _transport.Connect());
-            _logger.LogInformation("Connected to {Endpoint}", endpoint);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to connect to {Endpoint}", endpoint);
-            _transport = null;
-        }
-    }
-
-    private void OnStartClick(object? sender, RoutedEventArgs e)
-    {
-        _vm.OnTime = _random.NextDouble() * 5;
-        InfoText.Text = "Randomized";
+        _vm.SelectedEndpoint = endpoint;
+        _vm.ConnectCommand.Execute(null);
     }
 
     private void OnClearClick(object? sender, RoutedEventArgs e)
     {
         _plot.Clear();
         InfoText.Text = "Cleared";
+        _vm.Averager.Reset();
     }
 
     private async void OnExportClick(object? sender, RoutedEventArgs e)
@@ -198,8 +171,7 @@ public partial class MainWindow : Window
         }
 
         InfoText.Text = $"Selected: {path}";
-        // _plot.SavePng("chart_export.png", 1000, 600);
-        // InfoText.Text = "Exported to chart_export.png";
+        // TODO: write _vm.CurrentTrace to CSV at path
     }
 
     private void OnExitClick(object? sender, RoutedEventArgs e)
@@ -254,8 +226,14 @@ public partial class MainWindow : Window
         var aboutWindow = new AboutWindow();
         await aboutWindow.ShowDialog(this);
     }
-    private async void OnWindowClosing(object? sender, WindowClosingEventArgs e)
+
+    private void OnWindowClosing(object? sender, WindowClosingEventArgs e)
     {
+        _vm.Disconnect();
+
+        _settings.Settings.ShowGrid = _vm.ShowGrid;
+        _settings.Settings.LineWidth = (float)_vm.LineWidth;
+        _settings.Settings.ShowMarkers = _vm.ShowMarkers;
         _settings.Settings.WindowWidth = Width;
         _settings.Settings.WindowHeight = Height;
     }

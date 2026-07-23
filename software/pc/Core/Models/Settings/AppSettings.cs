@@ -8,6 +8,10 @@ public sealed class AppSettings
         Light,
         Default
     };
+
+    public float LineWidth { get; set; } = 1.0f;
+    public bool ShowMarkers { get; set; } = false;
+    public bool ShowGrid { get; set; } = true;
     public enum PlottingBackend { LiveCharts, ScottPlot }
     public Theme CurrentTheme { get; set; } = Theme.Default;
     public PlottingBackend PlottingLibrary { get; set; } = PlottingBackend.ScottPlot;
