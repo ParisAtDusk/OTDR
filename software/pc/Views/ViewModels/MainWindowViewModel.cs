@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Styling;
 using Avalonia.Threading;
@@ -121,6 +122,7 @@ public partial class MainWindowViewModel : ObservableObject
         if(_device.IsConnected) return;
 
         ConnectionStatus = ConnectionStatus_e.Connecting;
+        MeasurementProgress = 0;
         ProgressBarIndeterminate = true;
         try
         {
@@ -195,7 +197,7 @@ public partial class MainWindowViewModel : ObservableObject
         bool stop = !_averager.Add(trace);
         if(_acquisitionCounter > SoftwareAveraging && !ContinuousMeasurement) stop = true;
         if(stop) CancelLiveAcquisition();
-        if(_acquisitionCounter <= SoftwareAveraging) MeasurementProgress = (_acquisitionCounter * 100) / (int)SoftwareAveraging;
+        if(_acquisitionCounter <= SoftwareAveraging && IsLiveAcquiring) MeasurementProgress = (_acquisitionCounter * 100) / (int)SoftwareAveraging;
         if(!stop) Dispatcher.UIThread.Post(() => CurrentTrace = _averager.GetResult());
     }
 
