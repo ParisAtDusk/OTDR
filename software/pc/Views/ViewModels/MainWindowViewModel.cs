@@ -5,9 +5,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Media;
+using Avalonia.Styling;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using LiveChartsCore.Themes;
 using OTDR.Core.Interfaces;
 using OTDR.Core.Models.Acquisition;
 using OTDR.Core.Models.Connections;
@@ -83,9 +85,13 @@ public partial class MainWindowViewModel : ObservableObject
     [ObservableProperty]
     private int? softwareAveraging = 1;
     [ObservableProperty]
-    private int measurementProgress = 10;
+    private int measurementProgress = 0;
     [ObservableProperty]
     private bool continuousMeasurement = false;
+    [ObservableProperty]
+    private bool progressBarIndeterminate = false;
+    [ObservableProperty]
+    private string eTATime = "";
 
     public MainWindowViewModel(IOtdrDevice device, ConnectionManager connectionManager)
     {
@@ -115,6 +121,7 @@ public partial class MainWindowViewModel : ObservableObject
         if(_device.IsConnected) return;
 
         ConnectionStatus = ConnectionStatus_e.Connecting;
+        ProgressBarIndeterminate = true;
         try
         {
             await _device.ConnectAsync(SelectedEndpoint);
@@ -126,7 +133,7 @@ public partial class MainWindowViewModel : ObservableObject
             // TODO: Handle exception
             IsConnected = false;
         }
-
+        ProgressBarIndeterminate = false;
         ConnectCommand.NotifyCanExecuteChanged();
         DisconnectCommand.NotifyCanExecuteChanged();
         AcquireCommand.NotifyCanExecuteChanged();
@@ -188,6 +195,7 @@ public partial class MainWindowViewModel : ObservableObject
         bool stop = !_averager.Add(trace);
         if(_acquisitionCounter > SoftwareAveraging && !ContinuousMeasurement) stop = true;
         if(stop) CancelLiveAcquisition();
+        if(_acquisitionCounter <= SoftwareAveraging) MeasurementProgress = (_acquisitionCounter * 100) / (int)SoftwareAveraging;
         if(!stop) Dispatcher.UIThread.Post(() => CurrentTrace = _averager.GetResult());
     }
 

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
@@ -7,13 +8,14 @@ using Avalonia.Media;
 
 namespace OTDR.Core.Helpers.Converters;
 
-public class StatusKeyToBrushConverter : IValueConverter
+public class StatusKeyToBrushConverter : IMultiValueConverter
 {
     public static readonly StatusKeyToBrushConverter Instance = new();
 
-    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    public object? Convert(IList<object?> values, Type targetType, object? parameter, CultureInfo culture)
     {
-        if (value is string key
+        if (values.Count > 0
+            && values[0] is string key
             && Application.Current is { } app
             && app.TryFindResource(key, app.ActualThemeVariant, out var brush))
         {
@@ -21,7 +23,4 @@ public class StatusKeyToBrushConverter : IValueConverter
         }
         return Brushes.Gray;
     }
-
-    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
-        => throw new NotSupportedException();
 }

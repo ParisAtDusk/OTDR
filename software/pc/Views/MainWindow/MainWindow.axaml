@@ -11,6 +11,7 @@
 
     <Window.Resources>
         <conv:StatusKeyToBrushConverter x:Key="StatusKeyToBrushConverter"/>
+        <conv:ProgressColorConverter x:Key="ProgressColorConverter"/>
     </Window.Resources>
     
     <!-- TOP-LEVEL LAYOUT: a DockPanel so the menu bar is pinned to the
@@ -72,24 +73,44 @@
                 <!-- Status text -->
                 <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" Margin="0,0,12,0">
                     <Ellipse x:Name="ConnectionDot"
-                        Width="10" Height="10"
-                        Fill="{Binding StatusBrushKey, Converter={StaticResource StatusKeyToBrushConverter}}"/>
+                        Width="10" Height="10">
+                        <Ellipse.Fill>
+                            <MultiBinding Converter="{StaticResource StatusKeyToBrushConverter}">
+                                <Binding Path="StatusBrushKey" />
+                                <Binding Path="$self.ActualThemeVariant" />
+                            </MultiBinding>
+                        </Ellipse.Fill>
+                    </Ellipse>
                     <TextBlock x:Name="BottomStatusText" Text="{Binding ConnectionStatusString, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center"/>
                 </StackPanel>
 
                 <!-- Progress bar -->
-                <ProgressBar Grid.Column="1"
-                            x:Name="OperationProgressBar"
-                            Minimum="0" Maximum="100" Value="{Binding MeasurementProgress}"
-                            Height="16"
-                            IsVisible="True"
-                            VerticalAlignment="Center"
-                            Margin="0,0,12,0"/>
-
+                 <Border Grid.Column="1"
+                    BorderBrush="Gray"
+                    BorderThickness="1"
+                    CornerRadius="3"
+                    Margin="0,0,12,0">
+                    <ProgressBar Grid.Column="1"
+                                x:Name="OperationProgressBar"
+                                Minimum="0" Maximum="100" Value="{Binding MeasurementProgress}"
+                                Height="16"
+                                IsVisible="True"
+                                VerticalAlignment="Center"
+                                ShowProgressText="True"
+                                IsIndeterminate="{Binding ProgressBarIndeterminate}"
+                                Margin="0,0,0,0">
+                                <ProgressBar.Foreground>
+                                    <MultiBinding Converter="{StaticResource ProgressColorConverter}">
+                                        <Binding Path="MeasurementProgress" />
+                                        <Binding Path="$self.ActualThemeVariant" />
+                                    </MultiBinding>
+                                </ProgressBar.Foreground>
+                    </ProgressBar>
+                </Border>
                 <!-- ETA -->
                 <TextBlock Grid.Column="2"
                         x:Name="EtaText"
-                        Text=""
+                        Text="{Binding ETATime}"
                         VerticalAlignment="Center"
                         Margin="0,0,12,0"
                         Foreground="Gray"/>
@@ -125,63 +146,63 @@
                          StackPanel arranges children in a single line
                          (vertical here via default Orientation).
                          Good for simple, uniform lists like checkboxes. -->
-                    <Expander Header="Display Options" IsExpanded="True">
-                        <StackPanel Spacing="8" Margin="4">
-                            <CheckBox x:Name="ShowGridCheckBox" Content="Show grid lines"
-                                    IsChecked="{Binding ShowGrid, Mode=TwoWay}"/>
-                            <CheckBox x:Name="ShowLegendCheckBox" Content="Show legend"
-                                    IsChecked="{Binding ShowLegend, Mode=TwoWay}"/>
-                            <CheckBox x:Name="ShowMarkersCheckBox" Content="Show markers"
-                                    IsChecked="{Binding ShowMarkers, Mode=TwoWay}"/>
-                            <CheckBox x:Name="AutoScaleCheckBox" Content="Auto-scale axes" IsChecked="True"/>
-                            <Grid Margin="4"
-                               ColumnDefinitions="Auto, 80, 5, *"
-                               RowDefinitions="Auto, Auto, Auto, Auto, Auto, Auto">
-                                <TextBlock Text="Line width"  Grid.Row="0" Grid.Column="0" VerticalAlignment="Center"/>
-                                <NumericUpDown
-                                    Grid.Row="0" Grid.Column="3"
-                                    Value="{Binding LineWidth, Mode=TwoWay, FallbackValue=1.0, TargetNullValue=1.0}"
-                                    Minimum="1.0" Maximum="10" Increment="0.1"
-                                    FormatString="F1"
-                                    ParsingNumberStyle="Float"
-                                    helpers:NumericUpDownFix.AcceptComma="True"
-                                    helpers:NumericUpDownFix.DefaultValue="1.0" />
-                            </Grid>
-                        </StackPanel>
-                    </Expander>
+                    <Border BorderBrush="{StaticResource BorderBrush}" CornerRadius="3" BorderThickness="2" >
+                        <Expander Header="Display Options" IsExpanded="False">
+                            <StackPanel Spacing="8" Margin="4">
+                                <CheckBox x:Name="ShowGridCheckBox" Content="Show grid lines"
+                                        IsChecked="{Binding ShowGrid, Mode=TwoWay}"/>
+                                <CheckBox x:Name="ShowLegendCheckBox" Content="Show legend"
+                                        IsChecked="{Binding ShowLegend, Mode=TwoWay}"/>
+                                <CheckBox x:Name="ShowMarkersCheckBox" Content="Show markers"
+                                        IsChecked="{Binding ShowMarkers, Mode=TwoWay}"/>
+                                <CheckBox x:Name="AutoScaleCheckBox" Content="Auto-scale axes" IsChecked="True"/>
+                                <Grid Margin="4"
+                                ColumnDefinitions="Auto, 80, 5, *"
+                                RowDefinitions="Auto, Auto, Auto, Auto, Auto, Auto">
+                                    <TextBlock Text="Line width"  Grid.Row="0" Grid.Column="0" VerticalAlignment="Center"/>
+                                    <NumericUpDown
+                                        Grid.Row="0" Grid.Column="3"
+                                        Value="{Binding LineWidth, Mode=TwoWay, FallbackValue=1.0, TargetNullValue=1.0}"
+                                        Minimum="1.0" Maximum="10" Increment="0.1"
+                                        FormatString="F1"
+                                        ParsingNumberStyle="Float"
+                                        helpers:NumericUpDownFix.AcceptComma="True"
+                                        helpers:NumericUpDownFix.DefaultValue="1.0" />
+                                </Grid>
+                            </StackPanel>
+                        </Expander>
+                    </Border>
 
                     <!-- MEASUREMENT PARAMETERS -->
-                    <Expander Header="Measurement Parameters" IsExpanded="True">
-                        <!-- NOTE: Avalonia's Grid has no RowSpacing/ColumnSpacing
-                             property (unlike WinUI). Spacing between rows is
-                             done here via a bottom Margin on each cell instead.  '*'' fills remaining space-->
-                        <Grid Margin="4"
-                              ColumnDefinitions="Auto, 80, 5, *"
-                              RowDefinitions="Auto, Auto, Auto, Auto, Auto, Auto">
+                     <Border BorderBrush="{StaticResource BorderBrush}" CornerRadius="3" BorderThickness="2" >
+                        <Expander Header="Measurement Parameters" IsExpanded="False">
+                            <!-- NOTE: Avalonia's Grid has no RowSpacing/ColumnSpacing
+                                property (unlike WinUI). Spacing between rows is
+                                done here via a bottom Margin on each cell instead.  '*'' fills remaining space-->
+                            <Grid Margin="4"
+                                ColumnDefinitions="Auto, 80, 5, *"
+                                RowDefinitions="Auto, Auto, Auto, Auto, Auto, Auto">
 
-                            <TextBlock Grid.Row="0" Grid.Column="0" Text="On Time" VerticalAlignment="Center" Margin="0,0,8,8"/>
-                            <TextBox Grid.Row="0" Grid.Column="3" MaxLength="8" Margin="0,0,0,8" TextAlignment="Center"
-                                Text="{Binding OnTimeStr, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                PlaceholderText="500ns"/>
-                            <!-- <Slider x:Name="OnTimeSlider" Grid.Row="0" Grid.Column="3"
-                                Minimum="0.1" Maximum="20000" TickFrequency="1"
-                                Margin="0,0,0,8"
-                                Value="{Binding OnTime, Mode=TwoWay}"/> -->
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="On Time" VerticalAlignment="Center" Margin="0,0,8,8"/>
+                                <TextBox Grid.Row="0" Grid.Column="3" MaxLength="8" Margin="0,0,0,8" TextAlignment="Center"
+                                    Text="{Binding OnTimeStr, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                    PlaceholderText="500ns"/>
+                                <!-- <Slider x:Name="OnTimeSlider" Grid.Row="0" Grid.Column="3"
+                                    Minimum="0.1" Maximum="20000" TickFrequency="1"
+                                    Margin="0,0,0,8"
+                                    Value="{Binding OnTime, Mode=TwoWay}"/> -->
 
-                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Averaging" VerticalAlignment="Center" Margin="0,0,8,8"/>
-                            <NumericUpDown
-                                Grid.Row="1" Grid.Column="3"
-                                Value="{Binding SoftwareAveraging, Mode=TwoWay}"
-                                Minimum="1" Maximum="8096" Increment="1" ClipValueToMinMax="True"/>
-                            <CheckBox Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="4" x:Name="ContinuousMeasurementCheckbox" Content="Continuous Measurement"
-                                Margin="0,8,0,0" IsChecked="{Binding ContinuousMeasurement, Mode=TwoWay}"/>
-                        </Grid>
-                    </Expander>
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Averaging" VerticalAlignment="Center" Margin="0,0,8,8"/>
+                                <NumericUpDown
+                                    Grid.Row="1" Grid.Column="3"
+                                    Value="{Binding SoftwareAveraging, Mode=TwoWay}"
+                                    Minimum="1" Maximum="8096" Increment="1" ClipValueToMinMax="True"/>
+                                <CheckBox Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="4" x:Name="ContinuousMeasurementCheckbox" Content="Continuous Measurement"
+                                    Margin="0,8,0,0" IsChecked="{Binding ContinuousMeasurement, Mode=TwoWay}"/>
+                            </Grid>
+                        </Expander>
+                    </Border>
 
-                    <!-- (c) WrapPanel layout example.
-                         WrapPanel flows children left-to-right and wraps
-                         to the next line when it runs out of room,
-                         handy for a row/cluster of action buttons. -->
                     <UniformGrid Columns="2" Rows="1" Margin="4">
                         <Button Content="Start" Command="{Binding StartLiveAcquisitionCommand}" Width="100" Margin="0,0,8,8"/>
                         <Button Content="Stop" Command="{Binding CancelLiveAcquisitionCommand}" Width="100" Margin="0,0,8,8"/>
