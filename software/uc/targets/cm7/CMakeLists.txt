@@ -1,4 +1,4 @@
-add_executable(otdr_cm7
+add_executable(cm7
     main.c
     # tasks/task_scpi.c
     # tasks/task_usb.c
@@ -8,19 +8,24 @@ add_executable(otdr_cm7
     # something more ??
 )
 
-target_link_libraries(otdr_cm7 PRIVATE
+target_link_libraries(cm7 PRIVATE
     scpi_core
     freertos_kernel
     stm32h7xx_ll
     cmsis_device_h7
 )
 
-target_link_options(otdr_cm7 PRIVATE
+target_link_options(cm7 PRIVATE
     -T${CMAKE_CURRENT_SOURCE_DIR}/STM32H755XIHx_CM7.ld
     -Wl,--gc-sections
-    -Wl,-Map=${CMAKE_CURRENT_BINARY_DIR}/otdr_cm7.map
+    -Wl,-Map=${CMAKE_CURRENT_BINARY_DIR}/cm7.map
 )
 
-add_custom_command(TARGET otdr_cm7 POST_BUILD
-    COMMAND ${CMAKE_OBJCOPY} -O binary $<TARGET_FILE:otdr_cm7> otdr_cm7.bin
+target_include_directories(cm7
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/inc
+)
+
+add_custom_command(TARGET cm7 POST_BUILD
+    COMMAND ${CMAKE_OBJCOPY} -O binary $<TARGET_FILE:cm7> cm7.bin
 )

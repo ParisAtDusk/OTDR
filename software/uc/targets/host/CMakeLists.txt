@@ -11,6 +11,11 @@ add_executable(host
 
 target_link_libraries(host PRIVATE
     scpi_core
+    freertos
+)
+
+target_include_directories(host PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/inc
 )
 
 target_link_options(host PRIVATE

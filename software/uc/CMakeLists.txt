@@ -12,13 +12,13 @@ if(NOT TARGET_PLATFORM)
 endif()
 
 if(TARGET_PLATFORM STREQUAL "cm7" OR TARGET_PLATFORM STREQUAL "cm4")
-    set(MCU_FAMILY "H7")
+  set(MCU_FAMILY "H7")
 else()
-    set(MCU_FAMILY "")   # host build has no MCU
+  set(MCU_FAMILY "")   # host build has no MCU
 endif()
 
 if(NOT TARGET_PLATFORM STREQUAL "host")
-    set(CMAKE_TOOLCHAIN_FILE ${CMAKE_SOURCE_DIR}/cmake/toolchain-arm-none-eabi.cmake)
+  set(CMAKE_TOOLCHAIN_FILE ${CMAKE_SOURCE_DIR}/cmake/toolchain-arm-none-eabi.cmake)
 endif()
 
 if(NOT CMAKE_BUILD_TYPE)
@@ -27,10 +27,23 @@ endif()
 
 project(otdr C CXX ASM)
 
+if(TARGET_PLATFORM STREQUAL "host")
+  add_library(freertos_config INTERFACE)
+  target_include_directories(freertos_config
+        SYSTEM INTERFACE
+            ${CMAKE_SOURCE_DIR}/targets/host/inc
+    )
+elseif(TARGET_PLATFORM STREQUAL "cm7")
+  target_include_directories(freertos_config
+        SYSTEM INTERFACE
+            ${CMAKE_SOURCE_DIR}/targets/cm7/inc
+    )
+endif()
+
 add_subdirectory(third_party)
 add_subdirectory(app)
 add_subdirectory(targets)
 
 if(TARGET_PLATFORM STREQUAL "host")
-    add_subdirectory(tests/unit_tests)
+  add_subdirectory(tests/unit_tests)
 endif()
