@@ -1,8 +1,15 @@
 # app/app
 
-add_library(otdr_app_core STATIC
-  src/app.c)
+add_library(app_core STATIC
+    src/app.c
+)
 
-target_include_directories(otdr_app_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/inc)
+target_include_directories(app_core PUBLIC inc)
 
-target_link_libraries(otdr_app_core PUBLIC common)
+target_link_libraries(app_core
+    PUBLIC
+        scpi_core
+        transport_if
+        freertos_kernel
+        freertos_config
+)

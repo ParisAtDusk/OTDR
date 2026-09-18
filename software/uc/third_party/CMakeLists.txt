@@ -3,21 +3,30 @@
 add_library(cmsis_core INTERFACE)
 target_include_directories(cmsis_core INTERFACE CMSIS/CMSIS/Core/Include)
 
-add_library(scpi_parser STATIC
-    scpi-parser/libscpi/src/parser.c
-    scpi-parser/libscpi/src/lexer.c
-    scpi-parser/libscpi/src/error.c
-    scpi-parser/libscpi/src/ieee488.c
-    scpi-parser/libscpi/src/minimal.c
-    scpi-parser/libscpi/src/units.c
-    scpi-parser/libscpi/src/utils.c
-    scpi-parser/libscpi/src/expression.c
-)
-target_include_directories(scpi_parser PUBLIC scpi-parser/libscpi/inc)
+# scpi_parser and FreeRTOS are both excluded on cm4: cm4 is bare-metal and
+# doesn't run SCPI or the RTOS at all
+if(NOT TARGET_PLATFORM STREQUAL "cm4")
+  add_library(scpi_parser STATIC
+      scpi-parser/libscpi/src/parser.c
+      scpi-parser/libscpi/src/lexer.c
+      scpi-parser/libscpi/src/error.c
+      scpi-parser/libscpi/src/ieee488.c
+      scpi-parser/libscpi/src/minimal.c
+      scpi-parser/libscpi/src/units.c
+      scpi-parser/libscpi/src/utils.c
+      scpi-parser/libscpi/src/expression.c
+  )
+  target_include_directories(scpi_parser PUBLIC scpi-parser/libscpi/inc)
 
-# if(NOT TARGET_PLATFORM STREQUAL "host")
-add_subdirectory(FreeRTOS-Kernel)
-# endif()
+  if(TARGET_PLATFORM STREQUAL "host")
+    set(FREERTOS_PORT "GCC_POSIX" CACHE STRING "" FORCE)
+    set(FREERTOS_HEAP "3" CACHE STRING "" FORCE)
+  endif()
+
+  add_subdirectory(FreeRTOS-Kernel)
+  target_link_libraries(freertos_kernel PUBLIC freertos_config)
+  target_link_libraries(freertos_kernel_port PUBLIC freertos_config)
+endif()
 
 if(MCU_FAMILY STREQUAL "H7")
   add_library(cmsis_device_h7 STATIC
