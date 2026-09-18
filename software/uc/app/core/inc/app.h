@@ -4,6 +4,8 @@
 #include "result.h"
 #include "transport_if.h"
 
+typedef enum { Connected, Disconnected, Measuring } DeviceState_e;
+
 Result app_init(transport_t *transport);
 void app_run(void);
 

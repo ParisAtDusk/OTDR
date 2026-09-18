@@ -2,6 +2,7 @@
 #include "result.h"
 
 #include <errno.h>
+#include <fcntl.h>
 #include <netinet/in.h>
 #include <string.h>
 #include <sys/socket.h>
@@ -11,15 +12,11 @@
 // clang-format off
 
 typedef struct {
-  int listen_socket; /* bound/listening socket, valid for the transport's lifetime */
-  int socket;         /* accepted client connection, -1 until a client attaches */
+  int listen_socket;
+  int socket;
   uint16_t port;
 } tcp_context_t;
 
-/* Device side: bind + listen once, then wait for a client. Safe to call
- * repeatedly -- if the listening socket already exists, this just blocks on
- * accept() again for a new client, which is how reconnects are handled after
- * one drops (see tcp_receive's R_ErrorClosed handling). */
 static Result tcp_open(transport_t *transport) {
   tcp_context_t *ctx = transport->context;
 
@@ -31,6 +28,7 @@ static Result tcp_open(transport_t *transport) {
 
     int opt = 1;
     setsockopt(ctx->listen_socket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+    fcntl(ctx->listen_socket, F_SETFL, O_NONBLOCK);
 
     struct sockaddr_in addr;
     memset(&addr, 0, sizeof(addr));
@@ -51,12 +49,16 @@ static Result tcp_open(transport_t *transport) {
     }
   }
 
-  /* Blocks here until a client connects -- the first time, or again after a
-   * previous client disconnected. */
-  ctx->socket = accept(ctx->listen_socket, NULL, NULL);
-  if (ctx->socket < 0) {
+  int client = accept(ctx->listen_socket, NULL, NULL);
+  if (client < 0) {
+    if (errno == EAGAIN || errno == EWOULDBLOCK) {
+      return R_Pending;
+    }
     return R_ErrorAccept;
   }
+
+  fcntl(client, F_SETFL, O_NONBLOCK);
+  ctx->socket = client;
 
   return R_Success;
 }
@@ -93,7 +95,10 @@ static Result tcp_send(transport_t *transport, const uint8_t *data,
     ssize_t sent = send(ctx->socket, data + total_sent, length - total_sent, 0);
     if (sent < 0) {
       if (errno == EINTR) {
-        continue; /* interrupted by signal, retry */
+        continue;
+      }
+      if (errno == EAGAIN || errno == EWOULDBLOCK) {
+        continue;
       }
       return R_ErrorSend;
     }
@@ -117,21 +122,17 @@ static Result tcp_receive(
   *received = 0;
 
   if (ctx->socket < 0) {
-    tcp_open(transport);
     return R_ErrorNotOpen;
   }
 
   ssize_t n = recv(ctx->socket, data, capacity, 0);
   if (n < 0) {
-    if (errno == EINTR) {
-      return R_Success; /* nothing read this time; caller can retry */
+    if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) {
+      return R_Success;
     }
     return R_ErrorReceive;
   }
   if (n == 0) {
-    /* Peer performed an orderly shutdown -- close it so it's not left
-     * around returning EOF forever; app_transport_task will call
-     * transport_open() again to accept a new client. */
     close(ctx->socket);
     ctx->socket = -1;
     return R_ErrorClosed;
