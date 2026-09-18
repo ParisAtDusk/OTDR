@@ -1,5 +1,5 @@
 
-add_executable(host main.c)
+add_executable(host src/main.c)
 
 target_link_libraries(host PRIVATE app_core)
 

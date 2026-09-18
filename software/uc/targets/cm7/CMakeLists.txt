@@ -1,16 +1,8 @@
 add_executable(cm7
-    main.c
-    # tasks/task_scpi.c
-    # tasks/task_usb.c
-    # tasks/task_ipc.c
-    # port_usb_ll/transport_usb.c
-    # port_ipc_cm4/acquisition_ipc.c
-    # something more ??
+    src/main.c
 )
 
 target_link_libraries(cm7 PRIVATE
-    scpi_core
-    freertos_kernel
     stm32h7xx_ll
     cmsis_device_h7
 )
