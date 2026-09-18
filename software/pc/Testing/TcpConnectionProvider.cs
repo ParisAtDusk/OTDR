@@ -43,8 +43,9 @@ public sealed class TcpConnectionProvider : IConnectionProvider
                   .AsTask()
                   .GetAwaiter()
                   .GetResult();
-
-            return client.Connected;
+            bool connected = client.Connected;
+            client.Close();
+            return connected;
         }
         catch (OperationCanceledException)
         {

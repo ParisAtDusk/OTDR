@@ -110,7 +110,7 @@ public sealed class TcpOtdrDevice : IOtdrDevice, IDisposable
             DistanceKm = [0.0],
             SignalDbm = [0.0],
         };
-        await SendRawAsync("hui");
+        await SendRawAsync("test");
         LatestTrace = data;
         TraceReceived?.Invoke(this, data);
         return data;
@@ -118,10 +118,10 @@ public sealed class TcpOtdrDevice : IOtdrDevice, IDisposable
 
     public Task StartLiveAcquisitionAsync(AcquisitionSettings settings, CancellationToken cancellationToken)
     {
-        return SendRawAsync("hui");;
+        return SendRawAsync("test");;
     }
 
-    public Task StopLiveAcquisitionAsync() => SendRawAsync("hui-stop");
+    public Task StopLiveAcquisitionAsync() => SendRawAsync("test-stop");
 
     public void Dispose() => Disconnect();
 }

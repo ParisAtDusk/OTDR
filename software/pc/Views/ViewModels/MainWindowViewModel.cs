@@ -132,6 +132,7 @@ public partial class MainWindowViewModel : ObservableObject
         }
         catch (Exception ex)
         {
+            _ = ex;
             // TODO: Handle exception
             IsConnected = false;
         }
