@@ -15,7 +15,7 @@ public interface IOtdrDevice
     Task<TraceData> AcquireTraceAsync(AcquisitionSettings settings);
 
     Task StartLiveAcquisitionAsync(AcquisitionSettings settings, CancellationToken cancellationToken);
-    void StopLiveAcquisition();
+    Task StopLiveAcquisitionAsync();
     bool IsAcquiring { get; }
 
     TraceData? LatestTrace { get; }

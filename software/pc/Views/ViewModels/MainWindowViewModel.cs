@@ -148,7 +148,7 @@ public partial class MainWindowViewModel : ObservableObject
     public void Disconnect()
     {
         _liveAcquisitionCts?.Cancel();
-        _device.StopLiveAcquisition();
+        _device.StopLiveAcquisitionAsync();
         _device.Disconnect();
 
         IsConnected = false;
@@ -217,7 +217,7 @@ public partial class MainWindowViewModel : ObservableObject
     private void CancelLiveAcquisition()
     {
         _liveAcquisitionCts?.Cancel();
-        _device.StopLiveAcquisition();
+        _device.StopLiveAcquisitionAsync();
         IsLiveAcquiring = false;
         _averager.Reset();
         _acquisitionCounter = 0;
@@ -317,5 +317,5 @@ internal class DesignTimeOtdrDeviceService : IOtdrDevice
     public Task StartLiveAcquisitionAsync(AcquisitionSettings settings, CancellationToken cancellationToken)
         => Task.CompletedTask;
 
-    public void StopLiveAcquisition() { }
+    public Task StopLiveAcquisitionAsync() => Task.CompletedTask;
 }

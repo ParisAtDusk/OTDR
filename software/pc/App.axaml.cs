@@ -48,7 +48,9 @@ public partial class App : Application
         services.AddSingleton<ConnectionManager>();
         #if DEBUG
         services.AddSingleton<IOtdrDevice, FakeOtdrDevice>();
+        services.AddSingleton<IOtdrDevice, TcpOtdrDevice>();
         services.AddSingleton<IConnectionProvider, FakeConnectionProvider>();
+        services.AddSingleton<IConnectionProvider, TcpConnectionProvider>();
         #endif
 
         services.AddSingleton<ITransportFactory, TransportFactory>();

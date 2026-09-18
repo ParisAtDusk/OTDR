@@ -68,7 +68,7 @@ public class FakeOtdrDevice : IOtdrDevice
         }
     }
 
-    public void StopLiveAcquisition() => IsAcquiring = false;
+    public Task StopLiveAcquisitionAsync() => Task.FromResult(IsAcquiring = false);
 
     private TraceData GenerateFakeTrace(AcquisitionSettings settings)
     {
