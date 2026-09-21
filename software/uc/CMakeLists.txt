@@ -27,6 +27,17 @@ endif()
 
 project(otdr C CXX ASM)
 
+add_compile_options(
+    -Wall
+    -Wextra
+    -Wpedantic
+    -Wunused
+    -Wunused-variable
+    -Wunused-function
+    -Wunused-parameter
+)
+
+
 if(TARGET_PLATFORM STREQUAL "host")
   add_library(freertos_config INTERFACE)
   target_include_directories(freertos_config

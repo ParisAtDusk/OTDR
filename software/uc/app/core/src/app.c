@@ -19,8 +19,7 @@
 static transport_t *s_transport;
 static TaskHandle_t s_console_task_handle;
 static TaskHandle_t s_transport_task_handle;
-static TaskHandle_t s_output_task_handle;
-static DeviceState_e s_state = Disconnected;
+// static DeviceState_e s_state = Disconnected;
 
 static LedHandle_t AddGpio(GpioPin_t *pin) {
   LedOut_t out = LedOutGpio_Make(pin);
@@ -114,13 +113,17 @@ Result app_init(transport_t *transport) {
   do {
     open_r = transport_open(s_transport);
     if (open_r == R_Pending) {
-      usleep(50 * 1000);
+      usleep(50 * 1000); // TODO: won't work on stm
     }
   } while (open_r == R_Pending);
 
   if (!ResSuccess(open_r)) {
     return R_ErrorInit;
   }
+
+  bool err = LedAnim_Init(tskIDLE_PRIORITY + 1);
+  if (err == false)
+    return R_ErrorInit;
 
   BaseType_t console_ok =
       xTaskCreate(app_console_task, "console", 512, NULL, tskIDLE_PRIORITY + 1,
@@ -130,14 +133,12 @@ Result app_init(transport_t *transport) {
       xTaskCreate(app_transport_task, "transport", 512, NULL,
                   tskIDLE_PRIORITY + 2, &s_transport_task_handle);
 
-  LedAnim_Init(tskIDLE_PRIORITY + 1);
-
   BaseType_t leds_ok = xTaskCreate(LedTask, "leds", configMINIMAL_STACK_SIZE,
                                    NULL, tskIDLE_PRIORITY + 1, NULL);
 
-  return (console_ok == pdPASS && transport_ok == pdPASS == pdPASS)
+  return (console_ok == pdPASS && transport_ok == pdPASS && leds_ok == pdPASS)
              ? R_Success
-             : R_ErrorGeneric;
+             : R_ErrorInit;
 }
 
 void app_run(void) {
