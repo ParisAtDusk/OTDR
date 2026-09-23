@@ -7,8 +7,9 @@
 #include "projdefs.h"
 #include "result.h"
 
-#include "FreeRTOS.h"
+#include "FreeRTOS.h" // IWYU pragma: keep
 #include "led_anim.h"
+#include "scpi_commands_otdr.h"
 #include "task.h"
 #include "transport_if.h"
 
@@ -76,7 +77,10 @@ static void app_transport_task(void *arg) {
 
     if (ResSuccess(r) && received > 0) {
       printf("app: rx %lu bytes\n\r", (unsigned long)received);
-      transport_send(s_transport, buf, received);
+      // taskENTER_CRITICAL();
+      SCPI_CoreConsume(buf, received);
+      // taskEXIT_CRITICAL();
+      // transport_send(s_transport, buf, received);
     } else if (r == R_Pending || (ResSuccess(r) && received == 0)) {
       vTaskDelay(pdMS_TO_TICKS(10));
     } else if (r == R_ErrorClosed) {
@@ -124,6 +128,8 @@ Result app_init(transport_t *transport) {
   bool err = LedAnim_Init(tskIDLE_PRIORITY + 1);
   if (err == false)
     return R_ErrorInit;
+
+  SCPI_CoreInit(s_transport);
 
   BaseType_t console_ok =
       xTaskCreate(app_console_task, "console", 512, NULL, tskIDLE_PRIORITY + 1,

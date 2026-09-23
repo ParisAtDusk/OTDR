@@ -14,6 +14,7 @@ if(NOT TARGET_PLATFORM STREQUAL "cm4")
       scpi-parser/libscpi/src/minimal.c
       scpi-parser/libscpi/src/units.c
       scpi-parser/libscpi/src/utils.c
+      scpi-parser/libscpi/src/fifo.c
       scpi-parser/libscpi/src/expression.c
   )
   target_include_directories(scpi_parser PUBLIC scpi-parser/libscpi/inc)
