@@ -20,8 +20,9 @@ namespace OTDR.Views.ViewModels;
 
 public partial class MainWindowViewModel : ObservableObject
 {
-    private readonly IOtdrDevice _device;
+    private readonly IOtdrDeviceFactory? _deviceFactory;
     private readonly IConnectionManager _connectionManager;
+    private IOtdrDevice _device;
     private CancellationTokenSource? _liveAcquisitionCts;
 
     private DateTimeOffset _lastUiUpdate = DateTimeOffset.MinValue;
@@ -94,24 +95,26 @@ public partial class MainWindowViewModel : ObservableObject
     [ObservableProperty]
     private string eTATime = "";
 
-    public MainWindowViewModel(IOtdrDevice device, ConnectionManager connectionManager)
+    public MainWindowViewModel(IOtdrDeviceFactory deviceFactory, IConnectionManager connectionManager)
     {
-        _device = device;
+        _deviceFactory = deviceFactory;
         _connectionManager = connectionManager;
-
-        CurrentTrace = _device.LatestTrace;
-        IsConnected = _device.IsConnected;
-        IsLiveAcquiring = _device.IsAcquiring;
-
-        _device.TraceReceived += OnTraceReceived;
-        _device.AcquisitionFaulted += OnAcquisitionFaulted;
+        _device = NullOtdrDevice.Instance;
         _averager = new TraceAverage(1);
     }
 
-    // Design-time only — do not use for runtime construction
-    public MainWindowViewModel() : this(new DesignTimeOtdrDeviceService(), new ConnectionManager(Array.Empty<IConnectionProvider>()))
+    // Design-time only
+    private MainWindowViewModel(IOtdrDevice designTimeDevice, IConnectionManager connectionManager)
     {
+        _deviceFactory = null;
+        _connectionManager = connectionManager;
+        _device = designTimeDevice;
+        SubscribeToDevice(_device);
+        _averager = new TraceAverage(1);
     }
+
+    // Design-time only
+    public MainWindowViewModel() : this(new NullOtdrDevice(), ConnectionManager.FromProviders(Array.Empty<IConnectionProvider>())) { }
 
     // Commands
     private bool CanConnect() => SelectedEndpoint is not null && !IsConnected;
@@ -119,14 +122,18 @@ public partial class MainWindowViewModel : ObservableObject
     private async Task ConnectAsync()
     {
         if (SelectedEndpoint is null) return;
-        if(_device.IsConnected) return;
+        if (_deviceFactory is null) return;
+        if (_device.IsConnected) return;
+
+        var device = _deviceFactory.Create(SelectedEndpoint);
 
         ConnectionStatus = ConnectionStatus_e.Connecting;
         MeasurementProgress = 0;
         ProgressBarIndeterminate = true;
         try
         {
-            await _device.ConnectAsync(SelectedEndpoint);
+            await device.ConnectAsync(SelectedEndpoint);
+            SwitchDevice(device);
             IsConnected = _device.IsConnected;
             ConnectionStatus = ConnectionStatus_e.Connected;
         }
@@ -162,6 +169,26 @@ public partial class MainWindowViewModel : ObservableObject
         StartLiveAcquisitionCommand.NotifyCanExecuteChanged();
         CancelLiveAcquisitionCommand.NotifyCanExecuteChanged();
     }
+    private void SwitchDevice(IOtdrDevice newDevice)
+    {
+        if (ReferenceEquals(_device, newDevice)) return;
+
+        UnsubscribeFromDevice(_device);
+        _device = newDevice;
+        SubscribeToDevice(_device);
+    }
+
+    private void SubscribeToDevice(IOtdrDevice device)
+    {
+        device.TraceReceived += OnTraceReceived;
+        device.AcquisitionFaulted += OnAcquisitionFaulted;
+    }
+
+    private void UnsubscribeFromDevice(IOtdrDevice device)
+    {
+        device.TraceReceived -= OnTraceReceived;
+        device.AcquisitionFaulted -= OnAcquisitionFaulted;
+    }
 
     // Acquisition - TODO: this should have its own class
     // TODO: Make averager update averaging window in live mode
@@ -196,10 +223,10 @@ public partial class MainWindowViewModel : ObservableObject
         _lastUiUpdate = now;
         _acquisitionCounter++;
         bool stop = !_averager.Add(trace);
-        if(_acquisitionCounter > SoftwareAveraging && !ContinuousMeasurement) stop = true;
-        if(stop) CancelLiveAcquisition();
-        if(_acquisitionCounter <= SoftwareAveraging && IsLiveAcquiring) MeasurementProgress = (_acquisitionCounter * 100) / (int)SoftwareAveraging;
-        if(!stop) Dispatcher.UIThread.Post(() => CurrentTrace = _averager.GetResult());
+        if (_acquisitionCounter > SoftwareAveraging && !ContinuousMeasurement) stop = true;
+        if (stop) CancelLiveAcquisition();
+        if (_acquisitionCounter <= SoftwareAveraging && IsLiveAcquiring) MeasurementProgress = (_acquisitionCounter * 100) / (int)SoftwareAveraging;
+        if (!stop) Dispatcher.UIThread.Post(() => CurrentTrace = _averager.GetResult());
     }
 
     private void OnAcquisitionFaulted(object? sender, Exception ex)
@@ -212,7 +239,7 @@ public partial class MainWindowViewModel : ObservableObject
             // ConnectionStatus = $"Live acquisition error: {ex.Message}";
         });
     }
-    
+
     private bool CanStopAcquring() => IsConnected && IsLiveAcquiring;
     [RelayCommand(CanExecute = nameof(CanStopAcquring))]
     private void CancelLiveAcquisition()
@@ -281,7 +308,7 @@ public partial class MainWindowViewModel : ObservableObject
         if (text.EndsWith("ns")) { multiplier = 1.0; numberPart = text[..^2]; }
         else if (text.EndsWith("n")) { multiplier = 1.0; numberPart = text[..^1]; }
         else if (text.EndsWith("us") || text.EndsWith("µs")) { multiplier = 1_000.0; numberPart = text[..^2]; }
-        else if (text.EndsWith("u") || text.EndsWith("µ")) {{ multiplier = 1_000.0; numberPart = text[..^1]; }}
+        else if (text.EndsWith("u") || text.EndsWith("µ")) { multiplier = 1_000.0; numberPart = text[..^1]; }
         else if (text.EndsWith("ms") || text.EndsWith("m")) { multiplier = 1_000_000.0; numberPart = text[..^2]; }
         else if (text.EndsWith("m")) { multiplier = 1_000_000.0; numberPart = text[..^1]; }
         else return false;
@@ -295,14 +322,16 @@ public partial class MainWindowViewModel : ObservableObject
 }
 
 // Designer
-internal class DesignTimeOtdrDeviceService : IOtdrDevice
+internal sealed class NullOtdrDevice : IOtdrDevice
 {
+    public static readonly NullOtdrDevice Instance = new();
+
     public bool IsConnected => false;
     public bool IsAcquiring => false;
     public TraceData? LatestTrace => null;
 
-    public event EventHandler<TraceData>? TraceReceived { add {} remove {} }
-    public event EventHandler<Exception>? AcquisitionFaulted { add {} remove {} }
+    public event EventHandler<TraceData>? TraceReceived { add { } remove { } }
+    public event EventHandler<Exception>? AcquisitionFaulted { add { } remove { } }
 
     public Task ConnectAsync(DeviceEndpoint endpoint) => Task.CompletedTask;
 

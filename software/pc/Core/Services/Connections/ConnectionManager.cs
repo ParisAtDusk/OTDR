@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using OTDR.Core.Interfaces;
 using OTDR.Core.Models.Connections;
 
@@ -12,18 +14,28 @@ public class ConnectionManager : IConnectionManager
 
     public IReadOnlyList<IConnectionProvider> Providers => _providers;
 
-    public ConnectionManager(IEnumerable<IConnectionProvider> providers)
+    // Runtime DI construction — the ONLY public constructor, so DI never has to guess.
+    public ConnectionManager(IServiceProvider sp)
     {
-        _providers = providers.ToList();
+        var keyedCheck = sp.GetRequiredService<IServiceProviderIsKeyedService>();
+
+        _providers = Enum.GetValues<OtdrDeviceKind>()
+            .Where(k => keyedCheck.IsKeyedService(typeof(IConnectionProvider), k))
+            .Select(k => sp.GetRequiredKeyedService<IConnectionProvider>(k))
+            .ToList();
     }
 
-    public Task<IReadOnlyList<DeviceEndpoint>> DiscoverAsync()
+    private ConnectionManager(IReadOnlyList<IConnectionProvider> providers)
     {
-        var endpoints = new List<DeviceEndpoint>();
-
-        foreach (var provider in _providers)
-            endpoints.AddRange(provider.GetConnections());
-
-        return Task.FromResult<IReadOnlyList<DeviceEndpoint>>(endpoints);
+        _providers = providers;
     }
+
+    public static ConnectionManager FromProviders(IEnumerable<IConnectionProvider> providers) =>
+        new(providers.ToList());
+
+    public IEnumerable<DeviceEndpoint> GetAllConnections() =>
+        _providers.SelectMany(p => p.GetConnections());
+
+    public Task<IReadOnlyList<DeviceEndpoint>> DiscoverAsync() =>
+        Task.FromResult<IReadOnlyList<DeviceEndpoint>>(GetAllConnections().ToList());
 }

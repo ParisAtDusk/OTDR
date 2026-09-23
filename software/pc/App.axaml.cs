@@ -45,19 +45,19 @@ public partial class App : Application
 
         services.AddSingleton<ISettingsService, JsonSettingService>();
         services.AddSingleton<IFileDialogService, FileDialogService>();
-        services.AddSingleton<ConnectionManager>();
-        #if DEBUG
-        // FIX: Refactor to factory since DI takes only the last registration
-        services.AddSingleton<IOtdrDevice, FakeOtdrDevice>();
-        services.AddSingleton<IOtdrDevice, TcpOtdrDevice>();
-        services.AddSingleton<IConnectionProvider, FakeConnectionProvider>();
-        services.AddSingleton<IConnectionProvider, TcpConnectionProvider>();
+
+       #if DEBUG
+        services.AddKeyedSingleton<IOtdrDevice, FakeOtdrDevice>(OtdrDeviceKind.Fake);
+        services.AddKeyedSingleton<IConnectionProvider, FakeConnectionProvider>(OtdrDeviceKind.Fake);
         #endif
 
-        services.AddSingleton<ITransportFactory, TransportFactory>();
-        services.AddSingleton<IConnectionManager, ConnectionManager>();
-        services.AddSingleton<IConnectionProvider, SerialConnectionProvider>();
+        services.AddKeyedSingleton<IOtdrDevice, TcpOtdrDevice>(OtdrDeviceKind.Tcp);
+        services.AddKeyedSingleton<IConnectionProvider, TcpConnectionProvider>(OtdrDeviceKind.Tcp);
+        services.AddKeyedSingleton<IConnectionProvider, SerialConnectionProvider>(OtdrDeviceKind.Serial);
 
+        services.AddSingleton<IOtdrDeviceFactory, OtdrDeviceFactory>();
+        services.AddSingleton<ITransportFactory, TransportFactory>();
+        services.AddSingleton<IConnectionManager, ConnectionManager>(); // was duplicated — fixed
         services.AddTransient<MainWindow>();
         services.AddTransient<MainWindowViewModel>();
         services.AddTransient<PreferencesWindowViewModel>();
