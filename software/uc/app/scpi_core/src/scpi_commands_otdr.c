@@ -11,8 +11,8 @@
 
 #define SCPI_IDN1 "AGH"
 #define SCPI_IDN2 "OTDR"
-#define SCPI_IDN3 "SN:001"
-#define SCPI_IDN4 "SW:00.00.01"
+#define SCPI_IDN3 "001"      /* Serial Number */
+#define SCPI_IDN4 "00.00.01" /* Software Version TODO: move it to CMake*/
 
 #define SCPI_ERROR_QUEUE_SIZE 17
 static scpi_error_t scpi_error_queue_data[SCPI_ERROR_QUEUE_SIZE];
@@ -37,8 +37,31 @@ static size_t s_scpi_write(scpi_t *scpi, const char *data, size_t length) {
 
 // clang-format off
 static const scpi_command_t scpi_commands[] = {
+  /* IEEE 488.2 mandatory commands */
+  { .pattern = "*CLS",  .callback = SCPI_CoreCls,  },
+  { .pattern = "*ESE",  .callback = SCPI_CoreEse,  },
+  { .pattern = "*ESE?", .callback = SCPI_CoreEseQ, },
+  { .pattern = "*ESR?", .callback = SCPI_CoreEsrQ, },
   { .pattern = "*IDN?", .callback = SCPI_CoreIdnQ, },
-  { .pattern = "*RST", .callback = SCPI_CoreRst, },
+  { .pattern = "*OPC",  .callback = SCPI_CoreOpc,  },
+  { .pattern = "*OPC?", .callback = SCPI_CoreOpcQ, },
+  { .pattern = "*RST",  .callback = SCPI_CoreRst,  },
+  { .pattern = "*SRE",  .callback = SCPI_CoreSre,  },
+  { .pattern = "*SRE?", .callback = SCPI_CoreSreQ, },
+  { .pattern = "*STB?", .callback = SCPI_CoreStbQ, },
+  { .pattern = "*TST?", .callback = SCPI_CoreTstQ, },
+  { .pattern = "*WAI",  .callback = SCPI_CoreWai,  },
+
+  /* SCPI required commands */
+  { .pattern = "SYSTem:ERRor[:NEXT]?",
+    .callback = SCPI_SystemErrorNextQ, },
+
+  { .pattern = "SYSTem:ERRor:COUNt?",
+    .callback = SCPI_SystemErrorCountQ, },
+
+  { .pattern = "SYSTem:VERSion?",
+    .callback = SCPI_SystemVersionQ, },
+
   SCPI_CMD_LIST_END
 };
 
@@ -57,6 +80,8 @@ Result SCPI_CoreInit(transport_t *transport) {
             SCPI_ERROR_QUEUE_SIZE);
   // SCPI_Init corrupts user_context
   scpi_context.user_context = &scpi_user_context;
+  scpi_context.interface->reset = NULL; // TODO: Add reset callback
+  scpi_context.interface->error = NULL; // TODO: Add error callback with logging
   return R_Success;
 }
 
