@@ -47,6 +47,7 @@ public partial class App : Application
         services.AddSingleton<IFileDialogService, FileDialogService>();
         services.AddSingleton<ConnectionManager>();
         #if DEBUG
+        // FIX: Refactor to factory since DI takes only the last registration
         services.AddSingleton<IOtdrDevice, FakeOtdrDevice>();
         services.AddSingleton<IOtdrDevice, TcpOtdrDevice>();
         services.AddSingleton<IConnectionProvider, FakeConnectionProvider>();

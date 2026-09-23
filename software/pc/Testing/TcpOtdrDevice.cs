@@ -89,6 +89,13 @@ public sealed class TcpOtdrDevice : IOtdrDevice, IDisposable
                 {
                     break; // peer closed the connection
                 }
+                else
+                {
+                    if (line.StartsWith("AGH"))
+                    {
+                        System.Console.WriteLine(line);
+                    }
+                }
 
                 RawLineReceived?.Invoke(this, line);
             }
@@ -110,7 +117,7 @@ public sealed class TcpOtdrDevice : IOtdrDevice, IDisposable
             DistanceKm = [0.0],
             SignalDbm = [0.0],
         };
-        await SendRawAsync("test");
+        await SendRawAsync("*IDN?\n");
         LatestTrace = data;
         TraceReceived?.Invoke(this, data);
         return data;
@@ -118,10 +125,10 @@ public sealed class TcpOtdrDevice : IOtdrDevice, IDisposable
 
     public Task StartLiveAcquisitionAsync(AcquisitionSettings settings, CancellationToken cancellationToken)
     {
-        return SendRawAsync("test");;
+        return SendRawAsync("*IDN?\n");;
     }
 
-    public Task StopLiveAcquisitionAsync() => SendRawAsync("test-stop");
+    public Task StopLiveAcquisitionAsync() => SendRawAsync("*IDN?\n");
 
     public void Dispose() => Disconnect();
 }
