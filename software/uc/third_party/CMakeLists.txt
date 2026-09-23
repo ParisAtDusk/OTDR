@@ -32,11 +32,20 @@ if(MCU_FAMILY STREQUAL "H7")
   add_library(cmsis_device_h7 STATIC
         cmsis_device_h7/Source/Templates/system_stm32h7xx.c)
 
+  target_compile_definitions(cmsis_device_h7 PUBLIC STM32H757xx)
   target_include_directories(cmsis_device_h7 PUBLIC cmsis_device_h7/Include)
   target_link_libraries(cmsis_device_h7 PUBLIC cmsis_core)
 
-  file(GLOB LL_SOURCES stm32h7xx_ll_driver/Src/stm32h7xx_ll_*.c)
-  add_library(mcu_ll STATIC ${LL_SOURCES})
+  add_library(mcu_ll STATIC
+      stm32h7xx_ll_driver/Src/stm32h7xx_ll_gpio.c
+      stm32h7xx_ll_driver/Src/stm32h7xx_ll_rcc.c
+      stm32h7xx_ll_driver/Src/stm32h7xx_ll_utils.c
+      stm32h7xx_ll_driver/Src/stm32h7xx_ll_usart.c
+      stm32h7xx_ll_driver/Src/stm32h7xx_ll_dma.c
+      stm32h7xx_ll_driver/Src/stm32h7xx_ll_exti.c
+  )
+  # add_library(mcu_ll STATIC ${LL_SOURCES})
+  target_compile_definitions(mcu_ll PUBLIC STM32H757xx)
   target_include_directories(mcu_ll PUBLIC stm32h7xx_ll_driver/Inc)
   target_link_libraries(mcu_ll PUBLIC cmsis_device_h7)
 endif()

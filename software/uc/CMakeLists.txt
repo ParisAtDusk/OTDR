@@ -18,7 +18,8 @@ else()
 endif()
 
 if(NOT TARGET_PLATFORM STREQUAL "host")
-  set(CMAKE_TOOLCHAIN_FILE ${CMAKE_SOURCE_DIR}/cmake/toolchain-arm-none-eabi.cmake)
+  set(CMAKE_TOOLCHAIN_FILE
+    ${CMAKE_SOURCE_DIR}/cmake/toolchain-arm-none-eabi.cmake)
 endif()
 
 if(NOT CMAKE_BUILD_TYPE)
@@ -45,6 +46,8 @@ if(TARGET_PLATFORM STREQUAL "host")
             ${CMAKE_SOURCE_DIR}/targets/host/inc
     )
 elseif(TARGET_PLATFORM STREQUAL "cm7")
+  set(FREERTOS_PORT GCC_ARM_CM7 CACHE STRING "")
+  add_library(freertos_config INTERFACE)
   target_include_directories(freertos_config
         SYSTEM INTERFACE
             ${CMAKE_SOURCE_DIR}/targets/cm7/inc

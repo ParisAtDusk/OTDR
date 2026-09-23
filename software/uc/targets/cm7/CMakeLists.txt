@@ -5,6 +5,7 @@ add_executable(cm7
 target_link_libraries(cm7 PRIVATE
     stm32h7xx_ll
     cmsis_device_h7
+    app_core
 )
 
 target_link_options(cm7 PRIVATE
