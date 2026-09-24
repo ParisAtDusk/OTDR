@@ -91,10 +91,8 @@ public sealed class TcpOtdrDevice : IOtdrDevice, IDisposable
                 }
                 else
                 {
-                    if (line.StartsWith("AGH"))
-                    {
-                        System.Console.WriteLine(line);
-                    }
+                    System.Console.WriteLine(line);
+                    
                 }
 
                 RawLineReceived?.Invoke(this, line);
@@ -125,10 +123,10 @@ public sealed class TcpOtdrDevice : IOtdrDevice, IDisposable
 
     public Task StartLiveAcquisitionAsync(AcquisitionSettings settings, CancellationToken cancellationToken)
     {
-        return SendRawAsync("*IDN?\n");;
+        return SendRawAsync("TRACE:DATA?\n");;
     }
 
-    public Task StopLiveAcquisitionAsync() => SendRawAsync("*IDN?\n");
+    public Task StopLiveAcquisitionAsync() => SendRawAsync("ACQ:PARAM:PUL:WID?\n");
 
     public void Dispose() => Disconnect();
 }
