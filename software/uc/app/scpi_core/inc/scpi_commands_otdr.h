@@ -25,14 +25,14 @@ scpi_result_t AcqLaserPower(scpi_t *context);
 scpi_result_t AcqLaserPowerQ(scpi_t *context);
 
 #define SCPI_COMMANDS(X)                                                       \
-  X("ACQuire:START", AcqStart)                                                 \
+  X("ACQuire:STARt", AcqStart)                                                 \
   X("ACQuire:STOP", AcqStop)                                                   \
-  X("ACQuire:PARAMeter:ITERations", AcqIters)                                  \
-  X("ACQuire:PARAMeter:ITERations?", AcqItersQ)                                \
-  X("ACQuire:PARAMeter:PULse:WIDth", AcqPulseWidth)                            \
-  X("ACQuire:PARAMeter:PULse:WIDth?", AcqPulseWidthQ)                          \
-  X("ACQuire:PARAMeter:PULse:POWer", AcqLaserPower)                            \
-  X("ACQuire:PARAMeter:PULse:POWer?", AcqLaserPowerQ)
+  X("ACQuire:PARameter:ITERations", AcqIters)                                  \
+  X("ACQuire:PARameter:ITERations?", AcqItersQ)                                \
+  X("ACQuire:PARameter:PULSe:WIDTh", AcqPulseWidth)                            \
+  X("ACQuire:PARameter:PULSe:WIDTh?", AcqPulseWidthQ)                          \
+  X("ACQuire:PARameter:PULSe:POWer", AcqLaserPower)                            \
+  X("ACQuire:PARameter:PULSe:POWer?", AcqLaserPowerQ)
 
 #define SCPI_ENTRY(p, cb) {.pattern = p, .callback = cb},
 
