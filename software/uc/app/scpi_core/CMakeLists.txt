@@ -2,6 +2,7 @@
 
 add_library(scpi_core STATIC
     # scpi_dispatch.c
+    src/scpi_commands.c
     src/scpi_commands_otdr.c
     # trace_buffer.c # shared with cm4 memory?
 )

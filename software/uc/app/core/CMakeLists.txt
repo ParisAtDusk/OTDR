@@ -2,6 +2,7 @@
 
 add_library(app_core STATIC
     src/app.c
+    src/otdr.c
 )
 
 target_include_directories(app_core PUBLIC inc)

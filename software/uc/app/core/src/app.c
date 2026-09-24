@@ -3,12 +3,14 @@
 #include "board_gpio.h"
 #include "led_anim.h"
 #include "led_out_gpio.h"
+#include "otdr.h"
 #include "portmacro.h"
 #include "projdefs.h"
 #include "result.h"
 
 #include "FreeRTOS.h" // IWYU pragma: keep
 #include "led_anim.h"
+#include "scpi_commands.h"
 #include "scpi_commands_otdr.h"
 #include "task.h"
 #include "transport_if.h"
@@ -64,6 +66,17 @@ static void LedTask(void *arg)
 
     vTaskDelay(portMAX_DELAY);
 }
+
+static const scpi_otdr_api_t _api = {
+  .acq_iters = acquire_set_iterations,
+  .acq_iters_query = acquire_get_iterations,
+  .acq_start = acquire_start,
+  .acq_stop = acquire_stop,
+  .acq_pulsewidth = acquire_set_pulse_width,
+  .acq_pulsewidth_query = acquire_get_pulse_width,
+  .acq_laserpower = acquire_set_laser_power,
+  .acq_laserpower_query = acquire_get_laser_power,
+};
 
 // clang-format on
 
@@ -130,6 +143,7 @@ Result app_init(transport_t *transport) {
     return R_ErrorInit;
 
   SCPI_CoreInit(s_transport);
+  RegisterOtdrApi(&_api);
 
   BaseType_t console_ok =
       xTaskCreate(app_console_task, "console", 512, NULL, tskIDLE_PRIORITY + 1,
