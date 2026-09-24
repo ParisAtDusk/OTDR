@@ -2,6 +2,7 @@
 #define OTDR_H
 
 #include "result.h"
+#include "trace.h"
 #include <stddef.h>
 #include <stdint.h>
 
@@ -13,5 +14,5 @@ Result acquire_set_pulse_width(uint32_t width_ns);
 Result acquire_get_pulse_width(uint32_t *width_ns);
 Result acquire_set_laser_power(uint32_t power_uw);
 Result acquire_get_laser_power(uint32_t *power_uw);
-
+Result trace_get_data(trace_t *trace);
 #endif // !OTDR_H

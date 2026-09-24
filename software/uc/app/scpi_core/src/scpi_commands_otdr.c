@@ -2,6 +2,7 @@
 #include "result.h"
 #include "scpi/parser.h"
 #include "scpi/types.h"
+#include "trace.h"
 #include <stddef.h>
 #include <stdint.h>
 
@@ -59,6 +60,13 @@ scpi_result_t AcqLaserPowerQ(scpi_t *context) {
     return SCPI_RES_ERR;
   SCPI_ResultUInt32(context, pwr);
   return SCPI_RES_OK;
+}
+
+scpi_result_t TraceDataQ(scpi_t *context) {
+  trace_t *t = {0};
+  _api->trace_data_query(t); // TODO: this sends only raw power for a test
+  SCPI_ResultArbitraryBlockData(context, t->power_raw, t->length);
+  return SCPI_RES_ERR;
 }
 
 void RegisterOtdrApi(const scpi_otdr_api_t *api) { _api = api; }

@@ -76,6 +76,7 @@ static const scpi_otdr_api_t _api = {
   .acq_pulsewidth_query = acquire_get_pulse_width,
   .acq_laserpower = acquire_set_laser_power,
   .acq_laserpower_query = acquire_get_laser_power,
+  .trace_data_query = trace_get_data,
 };
 
 // clang-format on
