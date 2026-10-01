@@ -44,8 +44,9 @@ trace_t test_trace = {
     .power_raw = pwr,
     .time_ps = x,
 };
-// FIX: something segfaults
+
 Result trace_get_data(trace_t *trace) {
   *trace = test_trace;
+  trace->length = 1000;
   return R_Success;
 }

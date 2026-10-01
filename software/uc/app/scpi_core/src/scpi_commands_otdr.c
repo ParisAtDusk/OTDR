@@ -1,10 +1,12 @@
 #include "scpi_commands_otdr.h"
+
+#include <stddef.h>
+#include <stdint.h>
+
 #include "result.h"
 #include "scpi/parser.h"
 #include "scpi/types.h"
 #include "trace.h"
-#include <stddef.h>
-#include <stdint.h>
 
 const scpi_otdr_api_t *_api;
 
@@ -63,10 +65,12 @@ scpi_result_t AcqLaserPowerQ(scpi_t *context) {
 }
 
 scpi_result_t TraceDataQ(scpi_t *context) {
-  trace_t *t = {0};
-  _api->trace_data_query(t); // TODO: this sends only raw power for a test
-  SCPI_ResultArbitraryBlockData(context, t->power_raw, t->length);
-  return SCPI_RES_ERR;
+  trace_t t = {0};
+  _api->trace_data_query(&t); // TODO: this sends only raw power for a test
+  size_t bytes = (size_t)t.length * sizeof(*t.power_raw);
+  SCPI_ResultArbitraryBlock(context, t.power_raw, bytes);
+
+  return SCPI_RES_OK;
 }
 
 void RegisterOtdrApi(const scpi_otdr_api_t *api) { _api = api; }
