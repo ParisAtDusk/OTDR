@@ -17,8 +17,8 @@ public class FakeOtdrDevice : IOtdrDevice
 
     public TraceData? LatestTrace { get; private set; } = new()
     {
-        DistanceKm = Array.Empty<double>(),
-        SignalDbm = Array.Empty<double>(),
+        DistanceKm = [],
+        SignalDbm = [],
     };
 
     public event EventHandler<TraceData>? TraceReceived;

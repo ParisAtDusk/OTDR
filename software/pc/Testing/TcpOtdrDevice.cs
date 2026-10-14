@@ -18,11 +18,11 @@ public sealed class TcpOtdrDevice : IOtdrDevice, IDisposable
     private Task? _readLoopTask;
 
     public bool IsConnected => _client?.Connected ?? false;
-    public bool IsAcquiring => false;
-        public TraceData? LatestTrace { get; private set; } = new()
+    public bool IsAcquiring { get; private set; } = false;
+    public TraceData? LatestTrace { get; private set; } = new()
     {
-        DistanceKm = Array.Empty<double>(),
-        SignalDbm = Array.Empty<double>(),
+        DistanceKm = [],
+        SignalDbm = [],
     };
 
     public event EventHandler<TraceData> TraceReceived = delegate { };
@@ -44,7 +44,7 @@ public sealed class TcpOtdrDevice : IOtdrDevice, IDisposable
         _stream = _client.GetStream();
 
         _readLoopCts = new CancellationTokenSource();
-        _readLoopTask = Task.Run(() => ReadLoopAsync(_stream, _readLoopCts.Token));
+        // _readLoopTask = Task.Run(() => ReadLoopAsync(_stream, _readLoopCts.Token));
     }
 
     public void Disconnect()
@@ -110,23 +110,80 @@ public sealed class TcpOtdrDevice : IOtdrDevice, IDisposable
 
     public async Task<TraceData> AcquireTraceAsync(AcquisitionSettings settings)
     {
-        TraceData data = new TraceData
+        await SendRawAsync("TRACE:DATA?");
+
+        byte[] one = new byte[1];
+
+        // Skip leading CR/LF
+        do
         {
-            DistanceKm = [0.0],
-            SignalDbm = [0.0],
+            await _stream!.ReadExactlyAsync(one);
+        }
+        while (one[0] == '\r' || one[0] == '\n');
+
+        if (one[0] != '#')
+            throw new Exception($"Expected '#', got 0x{one[0]:X2}");
+
+        await _stream!.ReadExactlyAsync(one);
+        int digits = one[0] - '0';
+
+        if (digits < 1 || digits > 9)
+            throw new Exception("Invalid SCPI block length digit count.");
+
+        byte[] lengthBytes = new byte[digits];
+        await _stream.ReadExactlyAsync(lengthBytes);
+
+        int length = int.Parse(Encoding.ASCII.GetString(lengthBytes));
+
+        byte[] bytes = new byte[length];
+        await _stream.ReadExactlyAsync(bytes);
+
+        int count = length / sizeof(ushort);
+
+        TraceData data = new()
+        {
+            DistanceKm = new double[count],
+            SignalDbm = new double[count]
         };
-        await SendRawAsync("*IDN?\n");
+
+        for (int i = 0; i < count; i++)
+        {
+            data.SignalDbm[i] =
+                BitConverter.ToUInt16(bytes, i * sizeof(ushort));
+
+            data.DistanceKm[i] = i;
+        }
+
         LatestTrace = data;
         TraceReceived?.Invoke(this, data);
         return data;
     }
 
-    public Task StartLiveAcquisitionAsync(AcquisitionSettings settings, CancellationToken cancellationToken)
+     public async Task StartLiveAcquisitionAsync(
+        AcquisitionSettings settings,
+        CancellationToken cancellationToken)
     {
-        return SendRawAsync("TRACE:DATA?\n");;
+        // TODO: First send START command
+        IsAcquiring = true;
+        try
+        {
+            while (!cancellationToken.IsCancellationRequested)
+            {
+                await AcquireTraceAsync(settings);
+
+                await Task.Delay(250, cancellationToken);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+        }
+        finally
+        {
+            IsAcquiring = false;
+        }
     }
 
-    public Task StopLiveAcquisitionAsync() => SendRawAsync("ACQ:PARAM:PUL:WID?\n");
+    public Task StopLiveAcquisitionAsync() => Task.FromResult(IsAcquiring = false); // TODO: Send STOP command
 
     public void Dispose() => Disconnect();
 }
